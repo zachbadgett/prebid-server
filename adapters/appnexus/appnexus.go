@@ -10,19 +10,48 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/prebid/prebid-server/pbs"
-
-	"golang.org/x/net/context/ctxhttp"
-
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+	"github.com/prebid/prebid-server/pbs"
+	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderAppnexus openrtb_ext.BidderName = "appnexus"
+
+func init() {
+	adapters.Register(BidderAppnexus,
+		adapters.WithBidder(NewAppNexusBidder),
+		adapters.WithAdapter("appnexus", NewAppNexusAdapter),
+		adapters.WithUsersync(NewAppnexusSyncer),
+	)
+}
 
 type AppNexusAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func newAppNexusBidder(client *http.Client, endpoint string) *AppNexusAdapter {
+	a := &adapters.HTTPAdapter{Client: client}
+	return &AppNexusAdapter{
+		http: a,
+		URI:  endpoint,
+	}
+}
+
+func NewAppNexusAdapter(cfg *config.Configuration) adapters.Adapter {
+	return newAppNexusBidder(adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig).Client, cfg.Adapters[string(BidderAppnexus)].Endpoint)
+}
+
+func NewAppNexusBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	return adapters.EnforceBidderInfo(newAppNexusBidder(cfg.HttpClient, cfg.Adapters[string(BidderAppnexus)].Endpoint), info)
+}
+
+func (a *AppNexusAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderAppnexus
 }
 
 // used for cookies and such
@@ -465,16 +494,4 @@ func appendMemberId(uri string, memberId string) string {
 	}
 
 	return uri + "?member_id=" + memberId
-}
-
-func NewAppNexusAdapter(config *adapters.HTTPAdapterConfig, endpoint string) *AppNexusAdapter {
-	return NewAppNexusBidder(adapters.NewHTTPAdapter(config).Client, endpoint)
-}
-
-func NewAppNexusBidder(client *http.Client, endpoint string) *AppNexusAdapter {
-	a := &adapters.HTTPAdapter{Client: client}
-	return &AppNexusAdapter{
-		http: a,
-		URI:  endpoint,
-	}
 }

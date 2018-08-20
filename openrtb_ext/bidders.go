@@ -12,60 +12,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-const schemaDirectory = "static/bidder-params"
-
 // BidderName may refer to a bidder ID, or an Alias which is defined in the request.
 type BidderName string
-
-// These names _must_ coincide with the bidder code in Prebid.js, if an adapter also exists in that project.
-// Please keep these (and the BidderMap) alphabetized to minimize merge conflicts among adapter submissions.
-const (
-	BidderAdtelligent  BidderName = "adtelligent"
-	BidderAdform       BidderName = "adform"
-	BidderAppnexus     BidderName = "appnexus"
-	BidderBeachfront   BidderName = "beachfront"
-	BidderBrightroll   BidderName = "brightroll"
-	BidderConversant   BidderName = "conversant"
-	BidderEPlanning    BidderName = "eplanning"
-	BidderFacebook     BidderName = "audienceNetwork"
-	BidderIndex        BidderName = "indexExchange"
-	BidderLifestreet   BidderName = "lifestreet"
-	BidderOpenx        BidderName = "openx"
-	BidderPubmatic     BidderName = "pubmatic"
-	BidderPulsepoint   BidderName = "pulsepoint"
-	BidderRubicon      BidderName = "rubicon"
-	BidderSomoaudience BidderName = "somoaudience"
-	BidderSovrn        BidderName = "sovrn"
-)
-
-// BidderMap stores all the valid OpenRTB 2.x Bidders in the project. This map *must not* be mutated.
-var BidderMap = map[string]BidderName{
-	"adtelligent":     BidderAdtelligent,
-	"adform":          BidderAdform,
-	"appnexus":        BidderAppnexus,
-	"beachfront":      BidderBeachfront,
-	"audienceNetwork": BidderFacebook,
-	"brightroll":      BidderBrightroll,
-	"conversant":      BidderConversant,
-	"eplanning":       BidderEPlanning,
-	"indexExchange":   BidderIndex,
-	"lifestreet":      BidderLifestreet,
-	"openx":           BidderOpenx,
-	"pubmatic":        BidderPubmatic,
-	"pulsepoint":      BidderPulsepoint,
-	"rubicon":         BidderRubicon,
-	"somoaudience":    BidderSomoaudience,
-	"sovrn":           BidderSovrn,
-}
-
-// BidderList returns the values of the BidderMap
-func BidderList() []BidderName {
-	bidders := make([]BidderName, 0, len(BidderMap))
-	for _, value := range BidderMap {
-		bidders = append(bidders, value)
-	}
-	return bidders
-}
 
 func (name BidderName) MarshalJSON() ([]byte, error) {
 	return []byte(name), nil
@@ -100,9 +48,9 @@ func NewBidderParamsValidator(schemaDirectory string) (BidderParamValidator, err
 	schemas := make(map[BidderName]*gojsonschema.Schema, 50)
 	for _, fileInfo := range fileInfos {
 		bidderName := strings.TrimSuffix(fileInfo.Name(), ".json")
-		if _, isValid := BidderMap[bidderName]; !isValid {
-			return nil, fmt.Errorf("File %s/%s does not match a valid BidderName.", schemaDirectory, fileInfo.Name())
-		}
+		//if _, isValid := BidderMap[bidderName]; !isValid {
+		//	return nil, fmt.Errorf("File %s/%s does not match a valid BidderName.", schemaDirectory, fileInfo.Name())
+		//}
 		toOpen, err := filepath.Abs(filepath.Join(schemaDirectory, fileInfo.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get an absolute representation of the path: %s, %v", toOpen, err)

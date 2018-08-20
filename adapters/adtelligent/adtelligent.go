@@ -5,22 +5,43 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+
+	"github.com/mxmCherry/openrtb"
 )
+
+const BidderAdtelligent openrtb_ext.BidderName = "adtelligent"
+
+func init() {
+	adapters.Register(BidderAdtelligent,
+		adapters.WithBidder(NewAdtelligentBidder),
+		adapters.WithUsersync(NewAdtelligentSyncer),
+	)
+}
 
 type AdtelligentAdapter struct {
 	endpoint string
+}
+
+func NewAdtelligentBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	b := &AdtelligentAdapter{
+		endpoint: cfg.Adapters[string(BidderAdtelligent)].Endpoint,
+	}
+	return adapters.EnforceBidderInfo(b, info)
 }
 
 type adtelligentImpExt struct {
 	Adtelligent openrtb_ext.ExtImpAdtelligent `json:"adtelligent"`
 }
 
-func (a *AdtelligentAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *AdtelligentAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderAdtelligent
+}
 
+func (a *AdtelligentAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
 	totalImps := len(request.Imp)
 	errors := make([]error, 0, totalImps)
 	imp2source := make(map[int][]int)
@@ -182,10 +203,4 @@ func validateImpression(imp *openrtb.Imp) (int, error) {
 	imp.Ext = impExtBuffer
 
 	return impExt.SourceId, nil
-}
-
-func NewAdtelligentBidder(endpoint string) *AdtelligentAdapter {
-	return &AdtelligentAdapter{
-		endpoint: endpoint,
-	}
 }

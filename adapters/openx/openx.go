@@ -8,14 +8,34 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
 
-const config = "hb_pbs_1.0.0"
+const hbconfig = "hb_pbs_1.0.0"
+const BidderOpenX openrtb_ext.BidderName = "openx"
+
+func init() {
+	adapters.Register(BidderOpenX,
+		adapters.WithBidder(NewOpenxBidder),
+		adapters.WithUsersync(NewOpenxSyncer),
+	)
+}
 
 type OpenxAdapter struct {
 	endpoint string
+}
+
+func NewOpenxBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	b := &OpenxAdapter{
+		endpoint: cfg.Adapters[string(BidderOpenX)].Endpoint,
+	}
+	return adapters.EnforceBidderInfo(b, info)
+}
+
+func (a *OpenxAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderOpenX
 }
 
 type openxImpExt struct {
@@ -74,7 +94,7 @@ func (a *OpenxAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.Re
 func (a *OpenxAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.RequestData, []error) {
 	var errs []error
 	var validImps []openrtb.Imp
-	reqExt := openxReqExt{BidderConfig: config}
+	reqExt := openxReqExt{BidderConfig: hbconfig}
 
 	for _, imp := range request.Imp {
 		if err := preprocess(&imp, &reqExt); err != nil {
@@ -202,10 +222,4 @@ func getMediaTypeForImp(impId string, imps []openrtb.Imp) openrtb_ext.BidType {
 		}
 	}
 	return mediaType
-}
-
-func NewOpenxBidder(endpoint string) *OpenxAdapter {
-	return &OpenxAdapter{
-		endpoint: endpoint,
-	}
 }

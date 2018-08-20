@@ -19,6 +19,7 @@ import (
 	"github.com/mssola/user_agent"
 	"github.com/mxmCherry/openrtb"
 	nativeRequests "github.com/mxmCherry/openrtb/native/request"
+	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/analytics"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/exchange"
@@ -282,7 +283,7 @@ func validateBidAdjustmentFactors(adjustmentFactors map[string]float64, aliases 
 		if adjustmentFactor <= 0 {
 			return fmt.Errorf("request.ext.prebid.bidadjustmentfactors.%s must be a positive number. Got %f", bidderToAdjust, adjustmentFactor)
 		}
-		if _, isBidder := openrtb_ext.BidderMap[bidderToAdjust]; !isBidder {
+		if _, isBidder := adapters.LookupBidder(bidderToAdjust); !isBidder {
 			if _, isAlias := aliases[bidderToAdjust]; !isAlias {
 				return fmt.Errorf("request.ext.prebid.bidadjustmentfactors.%s is not a known bidder or alias", bidderToAdjust)
 			}
@@ -589,7 +590,7 @@ func (deps *endpointDeps) validateImpExt(ext openrtb.RawJSON, aliases map[string
 			if tmp, isAlias := aliases[bidder]; isAlias {
 				coreBidder = tmp
 			}
-			if bidderName, isValid := openrtb_ext.BidderMap[coreBidder]; isValid {
+			if bidderName, isValid := adapters.LookupBidder(coreBidder); isValid {
 				if err := deps.paramsValidator.Validate(bidderName, ext); err != nil {
 					return fmt.Errorf("request.imp[%d].ext.%s failed validation.\n%v", impIndex, coreBidder, err)
 				}
@@ -615,7 +616,7 @@ func (deps *endpointDeps) parseBidExt(ext openrtb.RawJSON) (*openrtb_ext.ExtRequ
 
 func (deps *endpointDeps) validateAliases(aliases map[string]string) error {
 	for thisAlias, coreBidder := range aliases {
-		if _, isCoreBidder := openrtb_ext.BidderMap[coreBidder]; !isCoreBidder {
+		if _, isCoreBidder := adapters.LookupBidder(coreBidder); !isCoreBidder {
 			return fmt.Errorf("request.ext.prebid.aliases.%s refers to unknown bidder: %s", thisAlias, coreBidder)
 		}
 		if thisAlias == coreBidder {
@@ -649,7 +650,7 @@ func validateUser(user *openrtb.User, aliases map[string]string) error {
 					return errors.New(`request.user.ext.prebid requires a "buyeruids" property with at least one ID defined. If none exist, then request.user.ext.prebid should not be defined.`)
 				}
 				for bidderName, _ := range userExt.Prebid.BuyerUIDs {
-					if _, ok := openrtb_ext.BidderMap[bidderName]; !ok {
+					if _, ok := adapters.LookupBidder(bidderName); !ok {
 						if _, ok := aliases[bidderName]; !ok {
 							return fmt.Errorf("request.user.ext.%s is neither a known bidder name nor an alias in request.ext.prebid.aliases.", bidderName)
 						}

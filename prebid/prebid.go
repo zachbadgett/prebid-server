@@ -1,14 +1,27 @@
 package prebid
 
 import (
+	"crypto/tls"
 	"net"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/prebid/prebid-server/ssl"
 )
 
 var xForwardedFor = http.CanonicalHeaderKey("X-Forwarded-For")
 var xRealIP = http.CanonicalHeaderKey("X-Real-IP")
 var xForwardedProto = http.CanonicalHeaderKey("X-Forwarded-Proto")
+
+var HttpClient = &http.Client{
+	Transport: &http.Transport{
+		MaxIdleConns:        400,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     60 * time.Second,
+		TLSClientConfig:     &tls.Config{RootCAs: ssl.GetRootCAPool()},
+	},
+}
 
 // IsSecure attempts to detect whether the request is https
 func IsSecure(r *http.Request) bool {

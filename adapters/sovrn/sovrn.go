@@ -12,18 +12,51 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/glog"
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
+
+	"github.com/golang/glog"
+	"github.com/mxmCherry/openrtb"
 	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderSovrn openrtb_ext.BidderName = "sovrn"
+
+func init() {
+	adapters.Register(BidderSovrn,
+		adapters.WithBidder(NewSovrnBidder),
+		adapters.WithAdapter("sovrn", NewSovrnAdapter),
+		adapters.WithUsersync(NewSovrnSyncer),
+	)
+}
 
 type SovrnAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func newSovrnBidder(client *http.Client, endpoint string) *SovrnAdapter {
+	a := &adapters.HTTPAdapter{Client: client}
+	return &SovrnAdapter{
+		http: a,
+		URI:  endpoint,
+	}
+}
+
+// NewSovrnAdapter create a new SovrnAdapter instance
+func NewSovrnAdapter(cfg *config.Configuration) adapters.Adapter {
+	return newSovrnBidder(adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig).Client, cfg.Adapters[string(BidderSovrn)].Endpoint)
+}
+
+func NewSovrnBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	return adapters.EnforceBidderInfo(newSovrnBidder(cfg.HttpClient, cfg.Adapters[string(BidderSovrn)].Endpoint), info)
+}
+
+func (s *SovrnAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderSovrn
 }
 
 // Name - export adapter name */
@@ -300,19 +333,5 @@ func getTagid(sovrnExt openrtb_ext.ExtImpSovrn) string {
 		return sovrnExt.Tagid
 	} else {
 		return sovrnExt.TagId
-	}
-}
-
-// NewSovrnAdapter create a new SovrnAdapter instance
-func NewSovrnAdapter(config *adapters.HTTPAdapterConfig, endpoint string) *SovrnAdapter {
-	return NewSovrnBidder(adapters.NewHTTPAdapter(config).Client, endpoint)
-}
-
-func NewSovrnBidder(client *http.Client, endpoint string) *SovrnAdapter {
-	a := &adapters.HTTPAdapter{Client: client}
-
-	return &SovrnAdapter{
-		http: a,
-		URI:  endpoint,
 	}
 }

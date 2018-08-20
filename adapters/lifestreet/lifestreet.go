@@ -11,14 +11,37 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
 )
 
+const BidderLifestreet openrtb_ext.BidderName = "lifestreet"
+
+func init() {
+	adapters.Register(BidderLifestreet,
+		adapters.WithAdapter("indexExchange", NewLifestreetAdapter),
+		adapters.WithUsersync(NewLifestreetSyncer),
+	)
+}
+
 type LifestreetAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func NewLifestreetAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	return &LifestreetAdapter{
+		http: a,
+		URI:  cfg.Adapters[strings.ToLower(string(BidderLifestreet))].Endpoint,
+	}
+}
+
+func (a *LifestreetAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderLifestreet
 }
 
 // used for cookies and such
@@ -194,12 +217,4 @@ func (a *LifestreetAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 		return nil, err
 	}
 	return bids, nil
-}
-
-func NewLifestreetAdapter(config *adapters.HTTPAdapterConfig, endpoint string) *LifestreetAdapter {
-	a := adapters.NewHTTPAdapter(config)
-	return &LifestreetAdapter{
-		http: a,
-		URI:  endpoint,
-	}
 }

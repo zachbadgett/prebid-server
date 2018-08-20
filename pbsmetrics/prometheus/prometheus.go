@@ -3,6 +3,7 @@ package prometheusmetrics
 import (
 	"time"
 
+	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbsmetrics"
@@ -400,7 +401,7 @@ func adapterErrorsAsString() []string {
 }
 
 func adaptersAsString() []string {
-	list := openrtb_ext.BidderList()
+	list := adapters.BidderList()
 	output := make([]string, len(list))
 	for i, s := range list {
 		output[i] = string(s)

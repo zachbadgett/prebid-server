@@ -11,19 +11,50 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
+	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
+	"github.com/prebid/prebid-server/pbs"
+
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/errortypes"
-	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderFacebook openrtb_ext.BidderName = "audienceNetwork"
+
+func init() {
+	adapters.Register(BidderFacebook,
+		adapters.WithAdapter("audienceNetwork", NewFacebookAdapter),
+		adapters.WithUsersync(NewFacebookSyncer),
+	)
+}
 
 type FacebookAdapter struct {
 	http         *adapters.HTTPAdapter
 	URI          string
 	nonSecureUri string
 	platformJSON openrtb.RawJSON
+}
+
+func NewFacebookAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	partnerID := cfg.Adapters[strings.ToLower(string(BidderFacebook))].PlatformID
+	if partnerID == "" {
+		glog.Errorf("No facebook partnerID specified. Calls to the Audience Network will fail. Did you set adapters.facebook.platform_id in the app config?")
+		return &adapters.MisconfiguredAdapter{
+			TheName: "audienceNetwork",
+			Err:     errors.New("Audience Network is not configured properly on this Prebid Server deploy. If you believe this should work, contact the company hosting the service and tell them to check their configuration."),
+		}
+	}
+	return &FacebookAdapter{
+		http: a,
+		URI:  "https://an.facebook.com/placementbid.ortb",
+		//for AB test
+		nonSecureUri: "http://an.facebook.com/placementbid.ortb",
+		platformJSON: openrtb.RawJSON(fmt.Sprintf("{\"platformid\": %s}", partnerID)),
+	}
 }
 
 var supportedHeight = map[uint64]bool{
@@ -277,27 +308,4 @@ func (a *FacebookAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 		return nil, err
 	}
 	return bids, nil
-}
-
-func NewAdapterFromFacebook(config *adapters.HTTPAdapterConfig, partnerID string) adapters.Adapter {
-	if partnerID == "" {
-		glog.Errorf("No facebook partnerID specified. Calls to the Audience Network will fail. Did you set adapters.facebook.platform_id in the app config?")
-		return &adapters.MisconfiguredAdapter{
-			TheName: "audienceNetwork",
-			Err:     errors.New("Audience Network is not configured properly on this Prebid Server deploy. If you believe this should work, contact the company hosting the service and tell them to check their configuration."),
-		}
-	}
-	return NewFacebookAdapter(config, partnerID)
-}
-
-func NewFacebookAdapter(config *adapters.HTTPAdapterConfig, partnerID string) *FacebookAdapter {
-	a := adapters.NewHTTPAdapter(config)
-
-	return &FacebookAdapter{
-		http: a,
-		URI:  "https://an.facebook.com/placementbid.ortb",
-		//for AB test
-		nonSecureUri: "http://an.facebook.com/placementbid.ortb",
-		platformJSON: openrtb.RawJSON(fmt.Sprintf("{\"platformid\": %s}", partnerID)),
-	}
 }

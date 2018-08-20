@@ -7,25 +7,59 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
-
 	"net/url"
 	"strconv"
+	"strings"
+
+	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
+	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
+	"github.com/prebid/prebid-server/pbs"
 
 	"github.com/buger/jsonparser"
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/errortypes"
-	"github.com/prebid/prebid-server/openrtb_ext"
-	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderAdform openrtb_ext.BidderName = "adform"
+
+func init() {
+	adapters.Register(BidderAdform,
+		adapters.WithBidder(NewAdformBidder),
+		adapters.WithAdapter("adform", NewAdformAdapter),
+		adapters.WithUsersync(NewAdformSyncer),
+	)
+}
 
 type AdformAdapter struct {
 	http    *adapters.HTTPAdapter
 	URL     *url.URL
 	version string
+}
+
+func newAdformBidder(client *http.Client, endpointURL string) *AdformAdapter {
+	a := &adapters.HTTPAdapter{Client: client}
+	var uriObj *url.URL
+	uriObj, err := url.Parse(endpointURL)
+	if err != nil {
+		panic(fmt.Sprintf("Incorrect Adform request url %s, check the configuration, please.", endpointURL))
+	}
+	b := &AdformAdapter{
+		http:    a,
+		URL:     uriObj,
+		version: "0.1.2",
+	}
+	return b
+}
+
+func NewAdformBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	return adapters.EnforceBidderInfo(newAdformBidder(cfg.HttpClient, cfg.Adapters[string(BidderAdform)].Endpoint), info)
+}
+
+func NewAdformAdapter(cfg *config.Configuration) adapters.Adapter {
+	return newAdformBidder(adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig).Client, cfg.Adapters[string(BidderAdform)].Endpoint)
 }
 
 type adformRequest struct {
@@ -85,8 +119,8 @@ func isPriceTypeValid(priceType string) (string, bool) {
 
 // ADAPTER Interface
 
-func NewAdformAdapter(config *adapters.HTTPAdapterConfig, endpointURL string) *AdformAdapter {
-	return NewAdformBidder(adapters.NewHTTPAdapter(config).Client, endpointURL)
+func (a *AdformAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderAdform
 }
 
 // used for cookies and such
@@ -353,21 +387,6 @@ func parseAdformBids(response []byte) ([]*adformBid, error) {
 }
 
 // BIDDER Interface
-
-func NewAdformBidder(client *http.Client, endpointURL string) *AdformAdapter {
-	a := &adapters.HTTPAdapter{Client: client}
-	var uriObj *url.URL
-	uriObj, err := url.Parse(endpointURL)
-	if err != nil {
-		panic(fmt.Sprintf("Incorrect Adform request url %s, check the configuration, please.", endpointURL))
-	}
-
-	return &AdformAdapter{
-		http:    a,
-		URL:     uriObj,
-		version: "0.1.2",
-	}
-}
 
 func (a *AdformAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
 	adformRequest, errors := openRtbToAdformRequest(request)

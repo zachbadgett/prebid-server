@@ -7,19 +7,38 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
+	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
+	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
 
-	"golang.org/x/net/context/ctxhttp"
-
 	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/errortypes"
+	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderIndex openrtb_ext.BidderName = "indexExchange"
+
+func init() {
+	adapters.Register(BidderIndex,
+		adapters.WithAdapter("indexExchange", NewIndexAdapter),
+		adapters.WithUsersync(NewIndexSyncer),
+	)
+}
 
 type IndexAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func NewIndexAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	return &IndexAdapter{
+		http: a,
+		URI:  cfg.Adapters[strings.ToLower(string(BidderIndex))].Endpoint,
+	}
 }
 
 // used for cookies and such
@@ -163,12 +182,4 @@ func (a *IndexAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 		}
 	}
 	return bids, nil
-}
-
-func NewIndexAdapter(config *adapters.HTTPAdapterConfig, uri string) *IndexAdapter {
-	a := adapters.NewHTTPAdapter(config)
-	return &IndexAdapter{
-		http: a,
-		URI:  uri,
-	}
 }

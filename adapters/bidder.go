@@ -1,21 +1,25 @@
 package adapters
 
 import (
+	"context"
 	"encoding/base64"
 	"net/http"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+
+	"github.com/mxmCherry/openrtb"
 )
 
 // Bidder describes how to connect to external demand.
 type Bidder interface {
-	// MakeRequests makes the HTTP requests which should be made to fetch bids.
+	BidderName() openrtb_ext.BidderName
+
+	// MakeRequests makes the HTTP requests which should be made to fetch Bids.
 	//
 	// nil return values are acceptable, but nil elements *inside* those slices are not.
 	//
-	// The errors should contain a list of errors which explain why this bidder's bids will be
+	// The errors should contain a list of errors which explain why this bidder's Bids will be
 	// "subpar" in some way. For example: the request contained ad types which this bidder doesn't support.
 	//
 	// If the error is caused by bad user input, return a BadInputError.
@@ -23,14 +27,18 @@ type Bidder interface {
 
 	// MakeBids unpacks the server's response into Bids.
 	//
-	// The bids can be nil (for no bids), but should not contain nil elements.
+	// The Bids can be nil (for no Bids), but should not contain nil elements.
 	//
-	// The errors should contain a list of errors which explain why this bidder's bids will be
+	// The errors should contain a list of errors which explain why this bidder's Bids will be
 	// "subpar" in some way. For example: the server response didn't have the expected format.
 	//
 	// If the error was caused by bad user input, return a BadInputError.
 	// If the error was caused by a bad server response, return a BadServerResponseError
 	MakeBids(internalRequest *openrtb.BidRequest, externalRequest *RequestData, response *ResponseData) (*BidderResponse, []error)
+}
+
+type Requester interface {
+	RequestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*SeatBid, []error)
 }
 
 func BadInput(msg string) *errortypes.BadInput {
@@ -39,17 +47,17 @@ func BadInput(msg string) *errortypes.BadInput {
 	}
 }
 
-// BidderResponse wraps the server's response with the list of bids and the currency used by the bidder.
+// BidderResponse wraps the server's response with the list of Bids and the currency used by the bidder.
 //
 // Currency declaration is not mandatory but helps to detect an eventual currency mismatch issue.
-// From the bid response, the bidder accepts a list of valid currencies for the bid.
-// The currency is the same accross all bids.
+// From the Bid response, the bidder accepts a list of valid currencies for the Bid.
+// The currency is the same accross all Bids.
 type BidderResponse struct {
 	Currency string
 	Bids     []*TypedBid
 }
 
-// NewBidderResponseWithBidsCapacity create a new BidderResponse initialising the bids array capacity and the default currency value
+// NewBidderResponseWithBidsCapacity create a new BidderResponse initialising the Bids array capacity and the default currency value
 // to "USD".
 //
 // bidsCapacity allows to set initial Bids array capacity.
@@ -61,10 +69,10 @@ func NewBidderResponseWithBidsCapacity(bidsCapacity int) *BidderResponse {
 	}
 }
 
-// NewBidderResponse create a new BidderResponse initialising the bids array and the default currency value
+// NewBidderResponse create a new BidderResponse initialising the Bids array and the default currency value
 // to "USD".
 //
-// By default, Bids capacity will be set to 0.
+// By default, bids capacity will be set to 0.
 // By default, currency is USD but this behavior might be subject to change.
 func NewBidderResponse() *BidderResponse {
 	return NewBidderResponseWithBidsCapacity(0)
@@ -73,8 +81,8 @@ func NewBidderResponse() *BidderResponse {
 // TypedBid packages the openrtb.Bid with any bidder-specific information that PBS needs to populate an
 // openrtb_ext.ExtBidPrebid.
 //
-// TypedBid.Bid.Ext will become "response.seatbid[i].bid.ext.bidder" in the final OpenRTB response.
-// TypedBid.BidType will become "response.seatbid[i].bid.ext.prebid.type" in the final OpenRTB response.
+// TypedBid.Bid.Ext will become "response.seatbid[i].Bid.Ext.bidder" in the final OpenRTB response.
+// TypedBid.BidType will become "response.seatbid[i].Bid.Ext.prebid.type" in the final OpenRTB response.
 type TypedBid struct {
 	Bid     *openrtb.Bid
 	BidType openrtb_ext.BidType
@@ -99,7 +107,7 @@ type RequestData struct {
 	Headers http.Header
 }
 
-// ExtImpBidder can be used by Bidders to unmarshal any request.imp[i].ext.
+// ExtImpBidder can be used by Bidders to unmarshal any request.imp[i].Ext.
 type ExtImpBidder struct {
 	Prebid *openrtb_ext.ExtImpPrebid `json:"prebid"`
 

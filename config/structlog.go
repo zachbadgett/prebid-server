@@ -35,6 +35,7 @@ func logGeneralWithLogger(v reflect.Value, prefix string, logger func(msg string
 		logger("%s: %f", prefix, v.Float())
 	case reflect.Bool:
 		logger("%s: %t", prefix, v.Bool())
+	case reflect.Ptr:
 	default:
 		// logString, by using v.String(), will not fail, and indicate what additional cases we need to handle
 		logger("%s: %s", prefix, v.String())

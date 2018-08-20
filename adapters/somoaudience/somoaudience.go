@@ -5,14 +5,36 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+
+	"github.com/mxmCherry/openrtb"
 )
+
+const BidderSomoaudience openrtb_ext.BidderName = "somoaudience"
+
+func init() {
+	adapters.Register(BidderSomoaudience,
+		adapters.WithBidder(NewSomoaudienceBidder),
+		adapters.WithUsersync(NewSomoaudienceSyncer),
+	)
+}
 
 type SomoaudienceAdapter struct {
 	endpoint string
+}
+
+func NewSomoaudienceBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	b := &SomoaudienceAdapter{
+		endpoint: cfg.Adapters[string(BidderSomoaudience)].Endpoint,
+	}
+	return adapters.EnforceBidderInfo(b, info)
+}
+
+func (a *SomoaudienceAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderSomoaudience
 }
 
 func (a *SomoaudienceAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
@@ -169,10 +191,4 @@ func validateImpression(imp *openrtb.Imp) (string, error) {
 	}
 
 	return impExt.PlacementHash, nil
-}
-
-func NewSomoaudienceBidder(endpoint string) *SomoaudienceAdapter {
-	return &SomoaudienceAdapter{
-		endpoint: endpoint,
-	}
 }

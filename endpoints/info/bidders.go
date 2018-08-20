@@ -7,16 +7,15 @@ import (
 	"github.com/golang/glog"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/openrtb_ext"
 )
 
 // NewBiddersEndpoint implements /info/bidders
 func NewBiddersEndpoint() httprouter.Handle {
-	bidderNames := make([]string, 0, len(openrtb_ext.BidderMap))
-	for bidderName := range openrtb_ext.BidderMap {
-		bidderNames = append(bidderNames, bidderName)
+	list := adapters.BidderList()
+	bidderNames := make([]string, 0, len(list))
+	for _, bidderName := range list {
+		bidderNames = append(bidderNames, string(bidderName))
 	}
-
 	biddersJson, err := json.Marshal(bidderNames)
 	if err != nil {
 		glog.Fatalf("error creating /info/bidders endpoint response: %v", err)
@@ -31,7 +30,8 @@ func NewBiddersEndpoint() httprouter.Handle {
 }
 
 // NewBiddersEndpoint implements /info/bidders/*
-func NewBidderDetailsEndpoint(infos adapters.BidderInfos) httprouter.Handle {
+func NewBidderDetailsEndpoint() httprouter.Handle {
+	infos := adapters.Infos()
 	// Build all the responses up front, since there are a finite number and it won't use much memory.
 	responses := make(map[string]json.RawMessage, len(infos))
 	for bidderName, bidderInfo := range infos {

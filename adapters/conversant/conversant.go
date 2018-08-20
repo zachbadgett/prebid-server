@@ -8,16 +8,36 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
+
+	"github.com/mxmCherry/openrtb"
 	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderConversant openrtb_ext.BidderName = "conversant"
+
+func init() {
+	adapters.Register(BidderConversant,
+		adapters.WithAdapter("conversant", NewConversantAdapter),
+		adapters.WithUsersync(NewConversantSyncer),
+	)
+}
 
 type ConversantAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func NewConversantAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	return &ConversantAdapter{
+		http: a,
+		URI:  cfg.Adapters[string(BidderConversant)].Endpoint,
+	}
 }
 
 // Corresponds to the bidder name in cookies and requests
@@ -277,13 +297,4 @@ func (a *ConversantAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 	}
 
 	return bids, nil
-}
-
-func NewConversantAdapter(config *adapters.HTTPAdapterConfig, uri string) *ConversantAdapter {
-	a := adapters.NewHTTPAdapter(config)
-
-	return &ConversantAdapter{
-		http: a,
-		URI:  uri,
-	}
 }

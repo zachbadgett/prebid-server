@@ -10,9 +10,12 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
+
+const BidderBeachfront openrtb_ext.BidderName = "beachfront"
 
 const Seat = "beachfront"
 const BidCapacity = 5
@@ -24,7 +27,22 @@ const VideoEndpointSuffix = "&prebidserver"
 const beachfrontAdapterName = "BF_PREBID_S2S"
 const beachfrontAdapterVersion = "0.1.1"
 
-type BeachfrontAdapter struct {
+func init() {
+	adapters.Register(BidderBeachfront,
+		adapters.WithBidder(NewBeachfrontBidder),
+		adapters.WithUsersync(NewBeachfrontSyncer),
+	)
+}
+
+type BeachfrontAdapter struct{}
+
+func NewBeachfrontBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	b := &BeachfrontAdapter{}
+	return adapters.EnforceBidderInfo(b, info)
+}
+
+func (a *BeachfrontAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderBeachfront
 }
 
 type BeachfrontRequests struct {
@@ -510,8 +528,4 @@ func getBidType(internal *openrtb.BidRequest) openrtb_ext.BidType {
 func extractVideoCrid(nurl string) string {
 	chunky := strings.SplitAfter(nurl, ":")
 	return strings.TrimSuffix(chunky[2], ":")
-}
-
-func NewBeachfrontBidder() *BeachfrontAdapter {
-	return &BeachfrontAdapter{}
 }

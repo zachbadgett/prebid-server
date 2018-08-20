@@ -13,17 +13,35 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
 )
 
+const BidderPubmatic openrtb_ext.BidderName = "pubmatic"
+
 const MAX_IMPRESSIONS_PUBMATIC = 30
+
+func init() {
+	adapters.Register(BidderPubmatic,
+		adapters.WithAdapter("pubmatic", NewPubmaticAdapter),
+		adapters.WithUsersync(NewPubmaticSyncer),
+	)
+}
 
 type PubmaticAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func NewPubmaticAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	return &PubmaticAdapter{
+		http: a,
+		URI:  cfg.Adapters[strings.ToLower(string(BidderPubmatic))].Endpoint,
+	}
 }
 
 // used for cookies and such
@@ -262,14 +280,5 @@ func getMediaTypeForImp(impId string, imps []openrtb.Imp) openrtb_ext.BidType {
 func logf(msg string, args ...interface{}) {
 	if glog.V(2) {
 		glog.Infof(msg, args)
-	}
-}
-
-func NewPubmaticAdapter(config *adapters.HTTPAdapterConfig, uri string) *PubmaticAdapter {
-	a := adapters.NewHTTPAdapter(config)
-
-	return &PubmaticAdapter{
-		http: a,
-		URI:  uri,
 	}
 }

@@ -6,15 +6,37 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/golang/glog"
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+
+	"github.com/golang/glog"
+	"github.com/mxmCherry/openrtb"
 )
+
+const BidderBrightroll openrtb_ext.BidderName = "brightroll"
+
+func init() {
+	adapters.Register(BidderBrightroll,
+		adapters.WithBidder(NewBrightrollBidder),
+		adapters.WithUsersync(NewBrightrollSyncer),
+	)
+}
 
 type BrightrollAdapter struct {
 	URI string
+}
+
+func NewBrightrollBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	b := &BrightrollAdapter{
+		URI: cfg.Adapters[string(BidderBrightroll)].Endpoint,
+	}
+	return adapters.EnforceBidderInfo(b, info)
+}
+
+func (a *BrightrollAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderBrightroll
 }
 
 func (a *BrightrollAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
@@ -173,10 +195,4 @@ func getMediaTypeForImp(impId string, imps []openrtb.Imp) openrtb_ext.BidType {
 		}
 	}
 	return mediaType
-}
-
-func NewBrightrollBidder(endpoint string) *BrightrollAdapter {
-	return &BrightrollAdapter{
-		URI: endpoint,
-	}
 }

@@ -9,9 +9,9 @@ import (
 func TestAllValidBids(t *testing.T) {
 	brq := &openrtb.BidRequest{}
 
-	bids := make([]*pbsOrtbBid, 3)
+	bids := make([]*Bid, 3)
 
-	bids[0] = &pbsOrtbBid{
+	bids[0] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "one-bid",
 			ImpID: "thisImp",
@@ -19,7 +19,7 @@ func TestAllValidBids(t *testing.T) {
 			CrID:  "thisCreative",
 		},
 	}
-	bids[1] = &pbsOrtbBid{
+	bids[1] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "thatBid",
 			ImpID: "thatImp",
@@ -27,7 +27,7 @@ func TestAllValidBids(t *testing.T) {
 			CrID:  "thatCreative",
 		},
 	}
-	bids[2] = &pbsOrtbBid{
+	bids[2] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "123",
 			ImpID: "456",
@@ -36,7 +36,7 @@ func TestAllValidBids(t *testing.T) {
 		},
 	}
 	brw := &bidResponseWrapper{
-		adapterBids: &pbsOrtbSeatBid{
+		adapterBids: &SeatBid{
 			bids: bids,
 		},
 	}
@@ -45,39 +45,39 @@ func TestAllValidBids(t *testing.T) {
 
 func TestAllBadBids(t *testing.T) {
 	brq := &openrtb.BidRequest{}
-	bids := make([]*pbsOrtbBid, 5)
+	bids := make([]*Bid, 5)
 
-	bids[0] = &pbsOrtbBid{
+	bids[0] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "one-bid",
 			Price: 0.45,
 			CrID:  "thisCreative",
 		},
 	}
-	bids[1] = &pbsOrtbBid{
+	bids[1] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "thatBid",
 			ImpID: "thatImp",
 			CrID:  "thatCreative",
 		},
 	}
-	bids[2] = &pbsOrtbBid{
+	bids[2] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "123",
 			ImpID: "456",
 			Price: 0.44,
 		},
 	}
-	bids[3] = &pbsOrtbBid{
+	bids[3] = &Bid{
 		bid: &openrtb.Bid{
 			ImpID: "456",
 			Price: 0.44,
 			CrID:  "blah",
 		},
 	}
-	bids[4] = &pbsOrtbBid{}
+	bids[4] = &Bid{}
 	brw := &bidResponseWrapper{
-		adapterBids: &pbsOrtbSeatBid{
+		adapterBids: &SeatBid{
 			bids: bids,
 		},
 	}
@@ -87,8 +87,8 @@ func TestAllBadBids(t *testing.T) {
 func TestMixeddBids(t *testing.T) {
 	brq := &openrtb.BidRequest{}
 
-	bids := make([]*pbsOrtbBid, 5)
-	bids[0] = &pbsOrtbBid{
+	bids := make([]*Bid, 5)
+	bids[0] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "one-bid",
 			ImpID: "thisImp",
@@ -96,14 +96,14 @@ func TestMixeddBids(t *testing.T) {
 			CrID:  "thisCreative",
 		},
 	}
-	bids[1] = &pbsOrtbBid{
+	bids[1] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "thatBid",
 			ImpID: "thatImp",
 			CrID:  "thatCreative",
 		},
 	}
-	bids[2] = &pbsOrtbBid{
+	bids[2] = &Bid{
 		bid: &openrtb.Bid{
 			ID:    "123",
 			ImpID: "456",
@@ -111,16 +111,16 @@ func TestMixeddBids(t *testing.T) {
 			CrID:  "789",
 		},
 	}
-	bids[3] = &pbsOrtbBid{
+	bids[3] = &Bid{
 		bid: &openrtb.Bid{
 			ImpID: "456",
 			Price: 0.44,
 			CrID:  "blah",
 		},
 	}
-	bids[4] = &pbsOrtbBid{}
+	bids[4] = &Bid{}
 	brw := &bidResponseWrapper{
-		adapterBids: &pbsOrtbSeatBid{
+		adapterBids: &SeatBid{
 			bids: bids,
 		},
 	}
@@ -209,8 +209,8 @@ func TestCurrencyBids(t *testing.T) {
 			Cur: tc.brqCur,
 		}
 
-		bids := make([]*pbsOrtbBid, 2)
-		bids[0] = &pbsOrtbBid{
+		bids := make([]*Bid, 2)
+		bids[0] = &Bid{
 			bid: &openrtb.Bid{
 				ID:    "one-bid",
 				ImpID: "thisImp",
@@ -218,7 +218,7 @@ func TestCurrencyBids(t *testing.T) {
 				CrID:  "thisCreative",
 			},
 		}
-		bids[1] = &pbsOrtbBid{
+		bids[1] = &Bid{
 			bid: &openrtb.Bid{
 				ID:    "thatBid",
 				ImpID: "thatImp",
@@ -228,7 +228,7 @@ func TestCurrencyBids(t *testing.T) {
 		}
 
 		brw := &bidResponseWrapper{
-			adapterBids: &pbsOrtbSeatBid{
+			adapterBids: &SeatBid{
 				bids:     bids,
 				currency: tc.brpCur,
 			},

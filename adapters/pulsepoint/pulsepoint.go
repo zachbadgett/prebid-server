@@ -10,17 +10,40 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
+
+	"github.com/mxmCherry/openrtb"
 	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderPulsepoint openrtb_ext.BidderName = "pulsepoint"
+
+func init() {
+	adapters.Register(BidderPulsepoint,
+		adapters.WithAdapter("indexExchange", NewPulsePointAdapter),
+		adapters.WithUsersync(NewPulsepointSyncer),
+	)
+}
 
 type PulsePointAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
+}
+
+func NewPulsePointAdapter(cfg *config.Configuration) adapters.Adapter {
+	a := adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig)
+	return &PulsePointAdapter{
+		http: a,
+		URI:  cfg.Adapters[strings.ToLower(string(BidderPulsepoint))].Endpoint,
+	}
+}
+
+func (a *PulsePointAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderPulsepoint
 }
 
 // used for cookies and such
@@ -193,13 +216,4 @@ func (a *PulsePointAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 	}
 
 	return bids, nil
-}
-
-func NewPulsePointAdapter(config *adapters.HTTPAdapterConfig, uri string) *PulsePointAdapter {
-	a := adapters.NewHTTPAdapter(config)
-
-	return &PulsePointAdapter{
-		http: a,
-		URI:  uri,
-	}
 }

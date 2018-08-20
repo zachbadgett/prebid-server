@@ -7,8 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"net/http"
+
 	"github.com/golang/glog"
 	"github.com/prebid/prebid-server/openrtb_ext"
+	"github.com/prebid/prebid-server/prebid"
 	"github.com/spf13/viper"
 )
 
@@ -36,6 +39,7 @@ type Configuration struct {
 	Analytics            Analytics          `mapstructure:"analytics"`
 	AMPTimeoutAdjustment int64              `mapstructure:"amp_timeout_adjustment_ms"`
 	GDPR                 GDPR               `mapstructure:"gdpr"`
+	HttpClient           *http.Client
 }
 
 type configErrors []error
@@ -206,16 +210,18 @@ type Cookie struct {
 
 // New uses viper to get our server configurations.
 func New(v *viper.Viper) (*Configuration, error) {
-	var c Configuration
-	if err := v.Unmarshal(&c); err != nil {
+	c := &Configuration{
+		HttpClient: prebid.HttpClient,
+	}
+	if err := v.Unmarshal(c); err != nil {
 		return nil, fmt.Errorf("viper failed to unmarshal app config: %v", err)
 	}
 	glog.Info("Logging the resolved configuration:")
-	logGeneral(reflect.ValueOf(c), "  \t")
+	logGeneral(reflect.ValueOf(*c), "  \t")
 	if errs := c.validate(); len(errs) > 0 {
-		return &c, errs
+		return c, errs
 	}
-	return &c, nil
+	return c, nil
 }
 
 //Allows for protocol relative URL if scheme is empty
@@ -235,12 +241,13 @@ func (cfg *Configuration) GetCachedAssetURL(uuid string) string {
 }
 
 // Set the default config values for the viper object we are using.
-func SetupViper(v *viper.Viper, filename string) {
+func SetupViper(v *viper.Viper, filename string, bidderList []openrtb_ext.BidderName) {
 	if filename != "" {
 		v.SetConfigName(filename)
 		v.AddConfigPath(".")
 		v.AddConfigPath("/etc/config")
 	}
+
 	// Fixes #475: Some defaults will be set just so they are accessable via environment variables
 	// (basically so viper knows they exist)
 	v.SetDefault("external_url", "http://localhost:8000")
@@ -310,7 +317,7 @@ func SetupViper(v *viper.Viper, filename string) {
 	v.SetDefault("adapters.adtelligent.xapi.password", "")
 	v.SetDefault("adapters.adtelligent.xapi.tracker", "")
 
-	for _, bidder := range openrtb_ext.BidderMap {
+	for _, bidder := range bidderList {
 		setBidderDefaults(v, strings.ToLower(string(bidder)))
 	}
 

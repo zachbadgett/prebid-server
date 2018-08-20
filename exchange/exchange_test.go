@@ -33,7 +33,7 @@ func TestNewExchange(t *testing.T) {
 	server := httptest.NewServer(mockHandler(respStatus, "getBody", respBody))
 	defer server.Close()
 
-	knownAdapters := openrtb_ext.BidderList()
+	knownAdapters := adapters.BidderList()
 
 	cfg := &config.Configuration{
 		CacheURL: config.Cache{
@@ -41,7 +41,7 @@ func TestNewExchange(t *testing.T) {
 		},
 	}
 
-	e := NewExchange(server.Client(), nil, cfg, pbsmetrics.NewMetrics(metrics.NewRegistry(), knownAdapters), adapters.ParseBidderInfos("../static/bidder-info", openrtb_ext.BidderList())).(*exchange)
+	e := NewExchange(nil, cfg, pbsmetrics.NewMetrics(metrics.NewRegistry(), knownAdapters)).(*exchange)
 	for _, bidderName := range knownAdapters {
 		if _, ok := e.adapterMap[bidderName]; !ok {
 			t.Errorf("NewExchange produced an Exchange without bidder %s", bidderName)
@@ -68,20 +68,20 @@ func TestRaceIntegration(t *testing.T) {
 	defer server.Close()
 
 	cfg := &config.Configuration{
-		Adapters: make(map[string]config.Adapter, len(openrtb_ext.BidderMap)),
+		Adapters: make(map[string]config.Adapter, len(adapters.BidderMap())),
 	}
-	for _, bidder := range openrtb_ext.BidderList() {
+	for _, bidder := range adapters.BidderList() {
 		cfg.Adapters[strings.ToLower(string(bidder))] = config.Adapter{
 			Endpoint: server.URL,
 		}
 	}
-	cfg.Adapters[strings.ToLower(string(openrtb_ext.BidderFacebook))] = config.Adapter{
+	cfg.Adapters[strings.ToLower("audienceNetwork")] = config.Adapter{
 		Endpoint:   server.URL,
 		PlatformID: "abc",
 	}
 
-	theMetrics := pbsmetrics.NewMetrics(metrics.NewRegistry(), openrtb_ext.BidderList())
-	ex := NewExchange(server.Client(), &wellBehavedCache{}, cfg, theMetrics, adapters.ParseBidderInfos("../static/bidder-info", openrtb_ext.BidderList()))
+	theMetrics := pbsmetrics.NewMetrics(metrics.NewRegistry(), adapters.BidderList())
+	ex := NewExchange(&wellBehavedCache{}, cfg, theMetrics))
 	_, err := ex.HoldAuction(context.Background(), newRaceCheckingRequest(t), &emptyUsersync{}, pbsmetrics.Labels{})
 	if err != nil {
 		t.Errorf("HoldAuction returned unexpected error: %v", err)
@@ -155,7 +155,7 @@ func buildImpExt(t *testing.T, jsonFilename string) openrtb.RawJSON {
 	if err != nil {
 		t.Fatalf("Failed to open adapters directory: %v", err)
 	}
-	bidderExts := make(map[string]json.RawMessage, len(openrtb_ext.BidderMap))
+	bidderExts := make(map[string]json.RawMessage, len(adapters.BidderMap()))
 	for _, adapterFolder := range adapterFolders {
 		if adapterFolder.IsDir() && adapterFolder.Name() != "adapterstest" {
 			bidderName := adapterFolder.Name()
@@ -288,10 +288,10 @@ func extractResponseTimes(t *testing.T, context string, bid *openrtb.BidResponse
 }
 
 func newExchangeForTests(t *testing.T, filename string, expectations map[string]*bidderSpec, aliases map[string]string) Exchange {
-	adapters := make(map[openrtb_ext.BidderName]adaptedBidder)
-	for _, bidderName := range openrtb_ext.BidderMap {
+	a := make(map[openrtb_ext.BidderName]adapters.Bidder)
+	for _, bidderName := range adapters.BidderMap() {
 		if spec, ok := expectations[string(bidderName)]; ok {
-			adapters[bidderName] = &validatingBidder{
+			a[bidderName] = &validatingBidder{
 				t:             t,
 				fileName:      filename,
 				bidderName:    string(bidderName),
@@ -319,7 +319,7 @@ func newExchangeForTests(t *testing.T, filename string, expectations map[string]
 
 	return &exchange{
 		adapterMap: adapters,
-		me:         metricsConf.NewMetricsEngine(&config.Configuration{}, openrtb_ext.BidderList()),
+		me:         metricsConf.NewMetricsEngine(&config.Configuration{}, adapters.BidderList()),
 		cache:      &wellBehavedCache{},
 		cacheTime:  0,
 	}
@@ -356,14 +356,14 @@ type bidderResponse struct {
 	Errors  []string       `json:"errors,omitempty"`
 }
 
-// bidderSeatBid is basically a subset of pbsOrtbSeatBid from exchange/bidder.go.
+// bidderSeatBid is basically a subset of SeatBid from exchange/bidder.go.
 // The only real reason I'm not reusing that type is because I don't want people to think that the
 // JSON property tags on those types are contracts in prod.
 type bidderSeatBid struct {
 	Bids []bidderBid `json:"pbsBids,omitempty"`
 }
 
-// bidderBid is basically a subset of pbsOrtbBid from exchange/bidder.go.
+// bidderBid is basically a subset of Bid from exchange/bidder.go.
 // See the comment on bidderSeatBid for more info.
 type bidderBid struct {
 	Bid  *openrtb.Bid `json:"ortbBid,omitempty"`
@@ -378,6 +378,7 @@ func (f mockIdFetcher) GetId(bidder openrtb_ext.BidderName) (id string, ok bool)
 }
 
 type validatingBidder struct {
+	*adapters.BidRequester
 	t          *testing.T
 	fileName   string
 	bidderName string
@@ -387,7 +388,11 @@ type validatingBidder struct {
 	mockResponses map[string]bidderResponse
 }
 
-func (b *validatingBidder) requestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (seatBid *pbsOrtbSeatBid, errs []error) {
+func (b *validatingBidder) BidderName() openrtb_ext.BidderName {
+	return openrtb_ext.BidderName("mock")
+}
+
+func (b *validatingBidder) requestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (seatBid *SeatBid, errs []error) {
 	if expectedRequest, ok := b.expectations[string(name)]; ok {
 		if expectedRequest != nil {
 			if expectedRequest.BidAdjustment != bidAdjustment {
@@ -401,15 +406,15 @@ func (b *validatingBidder) requestBid(ctx context.Context, request *openrtb.BidR
 
 	if mockResponse, ok := b.mockResponses[string(name)]; ok {
 		if mockResponse.SeatBid != nil {
-			bids := make([]*pbsOrtbBid, len(mockResponse.SeatBid.Bids))
+			bids := make([]*Bid, len(mockResponse.SeatBid.Bids))
 			for i := 0; i < len(bids); i++ {
-				bids[i] = &pbsOrtbBid{
+				bids[i] = &Bid{
 					bid:     mockResponse.SeatBid.Bids[i].Bid,
 					bidType: openrtb_ext.BidType(mockResponse.SeatBid.Bids[i].Type),
 				}
 			}
 
-			seatBid = &pbsOrtbSeatBid{
+			seatBid = &SeatBid{
 				bids: bids,
 			}
 		}

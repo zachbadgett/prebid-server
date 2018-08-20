@@ -9,23 +9,61 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/golang/glog"
-
-	"github.com/prebid/prebid-server/pbs"
-
-	"golang.org/x/net/context/ctxhttp"
-
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+	"github.com/prebid/prebid-server/pbs"
+
+	"github.com/golang/glog"
+	"github.com/mxmCherry/openrtb"
+	"golang.org/x/net/context/ctxhttp"
 )
+
+const BidderRubicon openrtb_ext.BidderName = "rubicon"
+
+func init() {
+	adapters.Register(BidderRubicon,
+		adapters.WithBidder(NewRubiconBidder),
+		adapters.WithAdapter("rubicon", NewRubiconAdapter),
+		adapters.WithUsersync(NewRubiconSyncer),
+	)
+}
 
 type RubiconAdapter struct {
 	http         *adapters.HTTPAdapter
 	URI          string
 	XAPIUsername string
 	XAPIPassword string
+}
+
+func newRubiconBidder(client *http.Client, uri string, xuser string, xpass string, tracker string) *RubiconAdapter {
+	a := &adapters.HTTPAdapter{Client: client}
+	uri = appendTrackerToUrl(uri, tracker)
+	return &RubiconAdapter{
+		http:         a,
+		URI:          uri,
+		XAPIUsername: xuser,
+		XAPIPassword: xpass,
+	}
+}
+
+func NewRubiconAdapter(cfg *config.Configuration) adapters.Adapter {
+	return newRubiconBidder(adapters.NewHTTPAdapter(adapters.DefaultHTTPAdapterConfig).Client, cfg.Adapters[string(BidderRubicon)].Endpoint,
+		cfg.Adapters[string(BidderRubicon)].XAPI.Username, cfg.Adapters[string(BidderRubicon)].XAPI.Password, cfg.Adapters[string(BidderRubicon)].XAPI.Tracker)
+}
+
+func NewRubiconBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	return adapters.EnforceBidderInfo(newRubiconBidder(
+		cfg.HttpClient,
+		cfg.Adapters[string(BidderRubicon)].Endpoint,
+		cfg.Adapters[string(BidderRubicon)].XAPI.Username,
+		cfg.Adapters[string(BidderRubicon)].XAPI.Password,
+		cfg.Adapters[string(BidderRubicon)].XAPI.Tracker), info)
+}
+
+func (a *RubiconAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderRubicon
 }
 
 // used for cookies and such
@@ -512,23 +550,6 @@ func appendTrackerToUrl(uri string, tracker string) (res string) {
 		res = uri
 	}
 	return
-}
-
-func NewRubiconAdapter(config *adapters.HTTPAdapterConfig, uri string, xuser string, xpass string, tracker string) *RubiconAdapter {
-	return NewRubiconBidder(adapters.NewHTTPAdapter(config).Client, uri, xuser, xpass, tracker)
-}
-
-func NewRubiconBidder(client *http.Client, uri string, xuser string, xpass string, tracker string) *RubiconAdapter {
-	a := &adapters.HTTPAdapter{Client: client}
-
-	uri = appendTrackerToUrl(uri, tracker)
-
-	return &RubiconAdapter{
-		http:         a,
-		URI:          uri,
-		XAPIUsername: xuser,
-		XAPIPassword: xpass,
-	}
 }
 
 func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {

@@ -41,16 +41,16 @@ func (targData *targetData) setTargeting(auc *auction, isApp bool) {
 				targData.addKeys(targets, openrtb_ext.HbpbConstantKey, cpm, bidderName, isOverallWinner)
 			}
 			targData.addKeys(targets, openrtb_ext.HbBidderConstantKey, string(bidderName), bidderName, isOverallWinner)
-			if hbSize := makeHbSize(topBidPerBidder.bid); hbSize != "" {
+			if hbSize := makeHbSize(topBidPerBidder.Bid); hbSize != "" {
 				targData.addKeys(targets, openrtb_ext.HbSizeConstantKey, hbSize, bidderName, isOverallWinner)
 			}
-			if cacheID, ok := auc.cacheIds[topBidPerBidder.bid]; ok {
+			if cacheID, ok := auc.cacheIds[topBidPerBidder.Bid]; ok {
 				targData.addKeys(targets, openrtb_ext.HbCacheKey, cacheID, bidderName, isOverallWinner)
 			}
-			if vastID, ok := auc.vastCacheIds[topBidPerBidder.bid]; ok {
+			if vastID, ok := auc.vastCacheIds[topBidPerBidder.Bid]; ok {
 				targData.addKeys(targets, openrtb_ext.HbVastCacheKey, vastID, bidderName, isOverallWinner)
 			}
-			if deal := topBidPerBidder.bid.DealID; len(deal) > 0 {
+			if deal := topBidPerBidder.Bid.DealID; len(deal) > 0 {
 				targData.addKeys(targets, openrtb_ext.HbDealIdConstantKey, deal, bidderName, isOverallWinner)
 			}
 
@@ -64,7 +64,7 @@ func (targData *targetData) setTargeting(auc *auction, isApp bool) {
 				targData.addKeys(targets, openrtb_ext.HbEnvKey, openrtb_ext.HbEnvKeyApp, bidderName, isOverallWinner)
 			}
 
-			topBidPerBidder.bidTargets = targets
+			topBidPerBidder.BidTargets = targets
 		}
 	}
 }

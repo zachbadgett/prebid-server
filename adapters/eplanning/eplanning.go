@@ -2,27 +2,49 @@ package eplanning
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"fmt"
+	"net/http"
+	"strconv"
 
-	"github.com/golang/glog"
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
-	"strconv"
+	"github.com/golang/glog"
+	"github.com/mxmCherry/openrtb"
 )
 
+const BidderEPlanning openrtb_ext.BidderName = "eplanning"
+
 const DEFAULT_EXCHANGE_ID = "5a1ad71d2d53a0f5"
+
+func init() {
+	adapters.Register(BidderEPlanning,
+		adapters.WithBidder(NewEPlanningBidder),
+		adapters.WithUsersync(NewEPlanningSyncer),
+	)
+}
 
 type EPlanningAdapter struct {
 	http *adapters.HTTPAdapter
 	URI  string
 }
 
-func (adapter *EPlanningAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func NewEPlanningBidder(cfg *config.Configuration, info adapters.BidderInfo) adapters.Bidder {
+	adapter := &adapters.HTTPAdapter{Client: cfg.HttpClient}
+	b := &EPlanningAdapter{
+		http: adapter,
+		URI:  cfg.Adapters[string(BidderEPlanning)].Endpoint,
+	}
+	return adapters.EnforceBidderInfo(b, info)
+}
+
+func (a *EPlanningAdapter) BidderName() openrtb_ext.BidderName {
+	return BidderEPlanning
+}
+
+func (a *EPlanningAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
 	errors := make([]error, 0, len(request.Imp))
 	totalImps := len(request.Imp)
 	sourceMapper := make(map[string][]int)
@@ -78,7 +100,7 @@ func (adapter *EPlanningAdapter) MakeRequests(request *openrtb.BidRequest) ([]*a
 
 		requestData := adapters.RequestData{
 			Method:  "POST",
-			Uri:     adapter.URI + fmt.Sprintf("/%s", source),
+			Uri:     a.URI + fmt.Sprintf("/%s", source),
 			Body:    reqJSON,
 			Headers: headers,
 		}
@@ -127,7 +149,7 @@ func addHeaderIfNonEmpty(headers http.Header, headerName string, headerValue str
 	}
 }
 
-func (adapter *EPlanningAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *EPlanningAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}
@@ -164,13 +186,4 @@ func (adapter *EPlanningAdapter) MakeBids(internalRequest *openrtb.BidRequest, e
 	}
 
 	return bidResponse, nil
-}
-
-func NewEPlanningBidder(client *http.Client, endpoint string) *EPlanningAdapter {
-	adapter := &adapters.HTTPAdapter{Client: client}
-
-	return &EPlanningAdapter{
-		http: adapter,
-		URI:  endpoint,
-	}
 }

@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"net/http"
+
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
-	"net/http"
 )
 
 type RhythmoneAdapter struct {
 	endPoint string
 }
 
-func (a *RhythmoneAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *RhythmoneAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	errs := make([]error, 0, len(request.Imp))
 
 	var uri string
@@ -41,7 +43,7 @@ func (a *RhythmoneAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapter
 	return nil, errs
 }
 
-func (a *RhythmoneAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *RhythmoneAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}
@@ -99,7 +101,7 @@ func NewRhythmoneBidder(endpoint string) *RhythmoneAdapter {
 	}
 }
 
-func (a *RhythmoneAdapter) preProcess(req *openrtb.BidRequest, errors []error) (*openrtb.BidRequest, string, []error) {
+func (a *RhythmoneAdapter) preProcess(req *adcert.BidRequest, errors []error) (*adcert.BidRequest, string, []error) {
 	numRequests := len(req.Imp)
 	var uri string = ""
 	for i := 0; i < numRequests; i++ {

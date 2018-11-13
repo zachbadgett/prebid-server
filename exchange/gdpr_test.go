@@ -4,54 +4,60 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/mxmCherry/openrtb"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExtractGDPRFound(t *testing.T) {
-	gdprTest := openrtb.BidRequest{
-		User: &openrtb.User{
-			Ext: json.RawMessage(`{"consent": "BOS2bx5OS2bx5ABABBAAABoAAAAAFA"}`),
-		},
-		Regs: &openrtb.Regs{
-			Ext: json.RawMessage(`{"gdpr": 1}`),
+	gdprTest := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			User: &openrtb.User{
+				Ext: json.RawMessage(`{"consent": "BOS2bx5OS2bx5ABABBAAABoAAAAAFA"}`),
+			},
+			Regs: &openrtb.Regs{
+				Ext: json.RawMessage(`{"gdpr": 1}`),
+			},
 		},
 	}
-	gdpr := extractGDPR(&gdprTest, false)
-	consent := extractConsent(&gdprTest)
+	gdpr := extractGDPR(gdprTest, false)
+	consent := extractConsent(gdprTest)
 	assert.Equal(t, 1, gdpr)
 	assert.Equal(t, "BOS2bx5OS2bx5ABABBAAABoAAAAAFA", consent)
 
 	gdprTest.Regs.Ext = json.RawMessage(`{"gdpr": 0}`)
-	gdpr = extractGDPR(&gdprTest, true)
-	consent = extractConsent(&gdprTest)
+	gdpr = extractGDPR(gdprTest, true)
+	consent = extractConsent(gdprTest)
 	assert.Equal(t, 0, gdpr)
 	assert.Equal(t, "BOS2bx5OS2bx5ABABBAAABoAAAAAFA", consent)
 }
 
 func TestGDPRUnknown(t *testing.T) {
-	gdprTest := openrtb.BidRequest{}
+	gdprTest := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
-	gdpr := extractGDPR(&gdprTest, false)
-	consent := extractConsent(&gdprTest)
+	gdpr := extractGDPR(gdprTest, false)
+	consent := extractConsent(gdprTest)
 	assert.Equal(t, 1, gdpr)
 	assert.Equal(t, "", consent)
 
-	gdpr = extractGDPR(&gdprTest, true)
-	consent = extractConsent(&gdprTest)
+	gdpr = extractGDPR(gdprTest, true)
+	consent = extractConsent(gdprTest)
 	assert.Equal(t, 0, gdpr)
 
 }
 
 func TestCleanPI(t *testing.T) {
-	bidReqOrig := openrtb.BidRequest{}
+	bidReqOrig := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
-	bidReqCopy := bidReqOrig
+	adCopy := &adcert.BidRequest{}
+	bidReqCopy := *bidReqOrig.BidRequest
+	adCopy.BidRequest = &bidReqCopy
 	// Make sure cleanIP handles the empty case
-	cleanPI(&bidReqCopy, false)
+	cleanPI(adCopy, false)
 
 	// Add values to clean
-	bidReqOrig.User = &openrtb.User{
+	bidReqOrig.BidRequest.User = &openrtb.User{
 		BuyerUID: "abc123",
 	}
 	bidReqOrig.Device = &openrtb.Device{
@@ -64,9 +70,10 @@ func TestCleanPI(t *testing.T) {
 		},
 	}
 	// Make a shallow copy
-	bidReqCopy = bidReqOrig
+	bidReqCopy = *bidReqOrig.BidRequest
+	adCopy.BidRequest = &bidReqCopy
 
-	cleanPI(&bidReqCopy, false)
+	cleanPI(adCopy, false)
 
 	// Verify cleaned values
 	assertStringEmpty(t, bidReqCopy.User.BuyerUID)
@@ -87,11 +94,11 @@ func TestCleanPI(t *testing.T) {
 }
 
 func TestCleanPIAmp(t *testing.T) {
-	bidReqOrig := openrtb.BidRequest{}
+	bidReqOrig := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
 	bidReqCopy := bidReqOrig
 	// Make sure cleanIP handles the empty case
-	cleanPI(&bidReqCopy, false)
+	cleanPI(bidReqCopy, false)
 
 	// Add values to clean
 	bidReqOrig.User = &openrtb.User{
@@ -107,9 +114,9 @@ func TestCleanPIAmp(t *testing.T) {
 		},
 	}
 	// Make a shallow copy
-	bidReqCopy = bidReqOrig
+	*bidReqCopy = *bidReqOrig
 
-	cleanPI(&bidReqCopy, true)
+	cleanPI(bidReqCopy, true)
 
 	// Verify cleaned values
 	assert.Equal(t, "abc123", bidReqCopy.User.BuyerUID)

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/buger/jsonparser"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/pbs"
 
 	"golang.org/x/net/context/ctxhttp"
@@ -245,7 +246,7 @@ func (a *AppNexusAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 	return bids, nil
 }
 
-func (a *AppNexusAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *AppNexusAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	memberIds := make(map[string]bool)
 	errs := make([]error, 0, len(request.Imp))
 
@@ -407,7 +408,7 @@ func makeKeywordStr(keywords []*openrtb_ext.ExtImpAppnexusKeyVal) string {
 	return strings.Join(kvs, ",")
 }
 
-func (a *AppNexusAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *AppNexusAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

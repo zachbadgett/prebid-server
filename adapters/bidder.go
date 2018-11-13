@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -25,7 +26,7 @@ type Bidder interface {
 	// "subpar" in some way. For example: the request contained ad types which this bidder doesn't support.
 	//
 	// If the error is caused by bad user input, return an errortypes.BadInput.
-	MakeRequests(request *openrtb.BidRequest) ([]*RequestData, []error)
+	MakeRequests(request *adcert.BidRequest) ([]*RequestData, []error)
 
 	// MakeBids unpacks the server's response into Bids.
 	//
@@ -36,7 +37,7 @@ type Bidder interface {
 	//
 	// If the error was caused by bad user input, return a errortypes.BadInput.
 	// If the error was caused by a bad server response, return a errortypes.BadServerResponse
-	MakeBids(internalRequest *openrtb.BidRequest, externalRequest *RequestData, response *ResponseData) (*BidderResponse, []error)
+	MakeBids(internalRequest *adcert.BidRequest, externalRequest *RequestData, response *ResponseData) (*BidderResponse, []error)
 }
 
 func BadInput(msg string) *errortypes.BadInput {

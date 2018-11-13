@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/prebid/prebid-server/gdpr"
 
 	"github.com/prebid/prebid-server/pbsmetrics"
@@ -89,7 +91,7 @@ func runTargetingAuction(t *testing.T, mockBids map[openrtb_ext.BidderName][]*op
 		req.Site = &openrtb.Site{}
 	}
 
-	bidResp, err := ex.HoldAuction(context.Background(), req, &mockFetcher{}, pbsmetrics.Labels{})
+	bidResp, err := ex.HoldAuction(context.Background(), &adcert.BidRequest{BidRequest: req}, &mockFetcher{}, pbsmetrics.Labels{})
 
 	if err != nil {
 		t.Fatalf("Unexpected errors running auction: %v", err)
@@ -197,7 +199,7 @@ type mockTargetingBidder struct {
 	bids          []*openrtb.Bid
 }
 
-func (m *mockTargetingBidder) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (m *mockTargetingBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	return []*adapters.RequestData{{
 		Method:  "POST",
 		Uri:     m.mockServerURL,
@@ -206,7 +208,7 @@ func (m *mockTargetingBidder) MakeRequests(request *openrtb.BidRequest) ([]*adap
 	}}, nil
 }
 
-func (m *mockTargetingBidder) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (m *mockTargetingBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	bidResponse := &adapters.BidderResponse{
 		Bids: make([]*adapters.TypedBid, len(m.bids)),
 	}

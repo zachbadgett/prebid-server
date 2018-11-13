@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -133,7 +134,7 @@ func NewBeachfrontVideoRequest() BeachfrontVideoRequest {
 	return r
 }
 
-func getEndpoint(request *openrtb.BidRequest) (uri string) {
+func getEndpoint(request *adcert.BidRequest) (uri string) {
 	for i := range request.Imp {
 		if request.Imp[i].Video != nil {
 			// If there are any video imps, we will be running a video auction
@@ -144,7 +145,7 @@ func getEndpoint(request *openrtb.BidRequest) (uri string) {
 	return BannerEndpoint
 }
 
-func (a *BeachfrontAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *BeachfrontAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	var beachfrontRequests BeachfrontRequests
 	var reqJSON []byte
 	var uri string
@@ -195,7 +196,7 @@ func (a *BeachfrontAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapte
 We have received a prebid request. It needs to be converted to a beachfront request. This is complicated
 by the fact that we have different servers for video/display and they have different contracts.
 */
-func preprocess(req *openrtb.BidRequest, uri string) (BeachfrontRequests, []error, int) {
+func preprocess(req *adcert.BidRequest, uri string) (BeachfrontRequests, []error, int) {
 	var beachfrontReqs BeachfrontRequests
 	var errs = make([]error, 0, len(req.Imp))
 	var imps int
@@ -210,7 +211,7 @@ func preprocess(req *openrtb.BidRequest, uri string) (BeachfrontRequests, []erro
 	return beachfrontReqs, errs, imps
 }
 
-func getBannerRequest(req *openrtb.BidRequest) (BeachfrontBannerRequest, []error, int) {
+func getBannerRequest(req *adcert.BidRequest) (BeachfrontBannerRequest, []error, int) {
 	var bannerImpsIndex = 0
 	var beachfrontReq = NewBeachfrontBannerRequest()
 	var errs = make([]error, 0, len(req.Imp))
@@ -297,7 +298,7 @@ func getBannerRequest(req *openrtb.BidRequest) (BeachfrontBannerRequest, []error
 /*
 Prepare the request that has been received from Prebid.js, translating it to the beachfront format
 */
-func getVideoRequest(req *openrtb.BidRequest) (BeachfrontVideoRequest, []error, int) {
+func getVideoRequest(req *adcert.BidRequest) (BeachfrontVideoRequest, []error, int) {
 	var videoImpsIndex = 0
 	var beachfrontReq = NewBeachfrontVideoRequest()
 	var errs = make([]error, 0, len(req.Imp))
@@ -397,7 +398,7 @@ func getVideoRequest(req *openrtb.BidRequest) (BeachfrontVideoRequest, []error, 
 	return beachfrontReq, errs, imps
 }
 
-func (a *BeachfrontAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *BeachfrontAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	var bids []openrtb.Bid
 	var bidtype = getBidType(internalRequest)
 	// Silly name to avoid a collision which will probably never amount to more than annoying highlighting
@@ -504,7 +505,7 @@ func extractBannerCrid(adm string) string {
 	return strings.TrimSuffix(chunky[1], "\"")
 }
 
-func getBidType(internal *openrtb.BidRequest) openrtb_ext.BidType {
+func getBidType(internal *adcert.BidRequest) openrtb_ext.BidType {
 	for i := range internal.Imp {
 		if internal.Imp[i].Video != nil {
 			return openrtb_ext.BidTypeVideo

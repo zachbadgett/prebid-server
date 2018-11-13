@@ -11,6 +11,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
@@ -84,11 +85,11 @@ func (a *LifestreetAdapter) callOne(ctx context.Context, req *pbs.PBSRequest, re
 	return
 }
 
-func (a *LifestreetAdapter) MakeOpenRtbBidRequest(req *pbs.PBSRequest, bidder *pbs.PBSBidder, slotTag string, mtype pbs.MediaType, unitInd int) (openrtb.BidRequest, error) {
+func (a *LifestreetAdapter) MakeOpenRtbBidRequest(req *pbs.PBSRequest, bidder *pbs.PBSBidder, slotTag string, mtype pbs.MediaType, unitInd int) (adcert.BidRequest, error) {
 	lsReq, err := adapters.MakeOpenRTBGeneric(req, bidder, a.Name(), []pbs.MediaType{mtype})
 
 	if err != nil {
-		return openrtb.BidRequest{}, err
+		return adcert.BidRequest{}, err
 	}
 
 	if lsReq.Imp != nil && len(lsReq.Imp) > 0 {

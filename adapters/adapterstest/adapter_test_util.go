@@ -9,12 +9,13 @@ import (
 	"net/http"
 
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
 )
 
 // OrtbMockService Represents a scaffolded OpenRTB service.
 type OrtbMockService struct {
 	Server          *httptest.Server
-	LastBidRequest  *openrtb.BidRequest
+	LastBidRequest  *adcert.BidRequest
 	LastHttpRequest *http.Request
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -21,7 +22,7 @@ type adkernelAdnAdapter struct {
 }
 
 //MakeRequests prepares request information for prebid-server core
-func (adapter *adkernelAdnAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (adapter *adkernelAdnAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	errs := make([]error, 0, len(request.Imp))
 	if len(request.Imp) == 0 {
 		errs = append(errs, newBadInputError("No impression in the bid request"))
@@ -143,7 +144,7 @@ func getImpressionExt(imp *openrtb.Imp) (*openrtb_ext.ExtImpAdkernelAdn, error) 
 	return &adkernelAdnExt, nil
 }
 
-func (adapter *adkernelAdnAdapter) buildAdapterRequest(prebidBidRequest *openrtb.BidRequest, params *openrtb_ext.ExtImpAdkernelAdn, imps []openrtb.Imp) (*adapters.RequestData, error) {
+func (adapter *adkernelAdnAdapter) buildAdapterRequest(prebidBidRequest *adcert.BidRequest, params *openrtb_ext.ExtImpAdkernelAdn, imps []openrtb.Imp) (*adapters.RequestData, error) {
 	newBidRequest := createBidRequest(prebidBidRequest, params, imps)
 	reqJSON, err := json.Marshal(newBidRequest)
 	if err != nil {
@@ -167,7 +168,7 @@ func (adapter *adkernelAdnAdapter) buildAdapterRequest(prebidBidRequest *openrtb
 		Headers: headers}, nil
 }
 
-func createBidRequest(prebidBidRequest *openrtb.BidRequest, params *openrtb_ext.ExtImpAdkernelAdn, imps []openrtb.Imp) *openrtb.BidRequest {
+func createBidRequest(prebidBidRequest *adcert.BidRequest, params *openrtb_ext.ExtImpAdkernelAdn, imps []openrtb.Imp) *adcert.BidRequest {
 	bidRequest := *prebidBidRequest
 	bidRequest.Imp = imps
 	for idx := range bidRequest.Imp {
@@ -207,7 +208,7 @@ func (adapter *adkernelAdnAdapter) buildEndpointURL(params *openrtb_ext.ExtImpAd
 }
 
 //MakeBids translates adkernel bid response to prebid-server specific format
-func (adapter *adkernelAdnAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (adapter *adkernelAdnAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

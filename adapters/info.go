@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -32,7 +33,7 @@ type InfoAwareBidder struct {
 	info parsedBidderInfo
 }
 
-func (i *InfoAwareBidder) MakeRequests(request *openrtb.BidRequest) ([]*RequestData, []error) {
+func (i *InfoAwareBidder) MakeRequests(request *adcert.BidRequest) ([]*RequestData, []error) {
 	var allowedMediaTypes parsedSupports
 	if request.Site != nil {
 		if !i.info.site.enabled {

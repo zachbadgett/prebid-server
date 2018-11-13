@@ -16,6 +16,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/pbs"
@@ -645,8 +646,8 @@ func CreateVideoRequest(params ...string) (*pbs.PBSRequest, error) {
 
 // Helper to create a test http server that receives and generate openrtb requests and responses
 
-func CreateServer(prices ...float64) (*httptest.Server, *openrtb.BidRequest) {
-	var lastBidRequest openrtb.BidRequest
+func CreateServer(prices ...float64) (*httptest.Server, *adcert.BidRequest) {
+	var lastBidRequest adcert.BidRequest
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
@@ -655,7 +656,7 @@ func CreateServer(prices ...float64) (*httptest.Server, *openrtb.BidRequest) {
 			return
 		}
 
-		var bidReq openrtb.BidRequest
+		var bidReq adcert.BidRequest
 		var price float64
 		var bids []openrtb.Bid
 		var bid openrtb.Bid

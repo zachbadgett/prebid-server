@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adform"
 	"github.com/prebid/prebid-server/adapters/appnexus"
@@ -235,6 +237,7 @@ func New(cfg *config.Configuration) (r *Router, err error) {
 	r.GET("/bidders/params", NewJsonDirectoryServer(schemaDirectory, paramsValidator, defaultAliases))
 	r.POST("/cookie_sync", endpoints.NewCookieSyncEndpoint(syncers, cfg, gdprPerms, r.MetricsEngine, pbsAnalytics))
 	r.GET("/status", endpoints.NewStatusEndpoint(cfg.StatusResponse))
+	r.GET("/adcert/:file", adcert.NewEndpoint())
 	r.GET("/", serveIndex)
 	r.ServeFiles("/static/*filepath", http.Dir("static"))
 

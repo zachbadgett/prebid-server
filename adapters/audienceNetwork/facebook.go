@@ -14,6 +14,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/pbs"
 	"golang.org/x/net/context/ctxhttp"
@@ -119,12 +120,12 @@ func (a *FacebookAdapter) callOne(ctx context.Context, reqJSON bytes.Buffer) (re
 	return
 }
 
-func (a *FacebookAdapter) MakeOpenRtbBidRequest(req *pbs.PBSRequest, bidder *pbs.PBSBidder, placementId string, mtype pbs.MediaType, pubId string, unitInd int) (openrtb.BidRequest, error) {
+func (a *FacebookAdapter) MakeOpenRtbBidRequest(req *pbs.PBSRequest, bidder *pbs.PBSBidder, placementId string, mtype pbs.MediaType, pubId string, unitInd int) (adcert.BidRequest, error) {
 	// this method creates imps for all ad units for the bidder with a single media type
 	fbReq, err := adapters.MakeOpenRTBGeneric(req, bidder, a.Name(), []pbs.MediaType{mtype})
 
 	if err != nil {
-		return openrtb.BidRequest{}, err
+		return adcert.BidRequest{}, err
 	}
 
 	fbReq.Ext = a.platformJSON
@@ -170,8 +171,8 @@ func (a *FacebookAdapter) MakeOpenRtbBidRequest(req *pbs.PBSRequest, bidder *pbs
 	}
 }
 
-func (a *FacebookAdapter) GenerateRequestsForFacebook(req *pbs.PBSRequest, bidder *pbs.PBSBidder) ([]*openrtb.BidRequest, error) {
-	requests := make([]*openrtb.BidRequest, len(bidder.AdUnits)*2) // potentially we can for eachadUnit have 2 imps - BANNER and VIDEO
+func (a *FacebookAdapter) GenerateRequestsForFacebook(req *pbs.PBSRequest, bidder *pbs.PBSBidder) ([]*adcert.BidRequest, error) {
+	requests := make([]*adcert.BidRequest, len(bidder.AdUnits)*2) // potentially we can for eachadUnit have 2 imps - BANNER and VIDEO
 	reqIndex := 0
 	for i, unit := range bidder.AdUnits {
 		var params facebookParams

@@ -3,6 +3,7 @@ package adapters
 import (
 	"encoding/json"
 
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/pbs"
 
@@ -77,7 +78,7 @@ func makeVideo(unit pbs.PBSAdUnit) *openrtb.Video {
 //
 // Any objects pointed to by the returned BidRequest *must not be mutated*, or we will get race conditions.
 // The only exception is the Imp property, whose objects will be created new by this method and can be mutated freely.
-func MakeOpenRTBGeneric(req *pbs.PBSRequest, bidder *pbs.PBSBidder, bidderFamily string, allowedMediatypes []pbs.MediaType) (openrtb.BidRequest, error) {
+func MakeOpenRTBGeneric(req *pbs.PBSRequest, bidder *pbs.PBSBidder, bidderFamily string, allowedMediatypes []pbs.MediaType) (adcert.BidRequest, error) {
 	imps := make([]openrtb.Imp, 0, len(bidder.AdUnits)*len(allowedMediatypes))
 	for _, unit := range bidder.AdUnits {
 		if len(unit.Sizes) <= 0 {
@@ -101,7 +102,7 @@ func MakeOpenRTBGeneric(req *pbs.PBSRequest, bidder *pbs.PBSBidder, bidderFamily
 				newImp.Video = makeVideo(unit)
 				// It's strange to error here... but preserves legacy behavior in legacy code. See #603.
 				if newImp.Video == nil {
-					return openrtb.BidRequest{}, &errortypes.BadInput{
+					return adcert.BidRequest{}, &errortypes.BadInput{
 						Message: "Invalid AdUnit: VIDEO media type with no video data",
 					}
 				}
@@ -113,24 +114,26 @@ func MakeOpenRTBGeneric(req *pbs.PBSRequest, bidder *pbs.PBSBidder, bidderFamily
 	}
 
 	if len(imps) < 1 {
-		return openrtb.BidRequest{}, &errortypes.BadInput{
+		return adcert.BidRequest{}, &errortypes.BadInput{
 			Message: "openRTB bids need at least one Imp",
 		}
 	}
 
 	if req.App != nil {
-		return openrtb.BidRequest{
-			ID:     req.Tid,
-			Imp:    imps,
-			App:    req.App,
-			Device: req.Device,
-			User:   req.User,
-			Source: &openrtb.Source{
-				TID: req.Tid,
+		return adcert.BidRequest{
+			BidRequest: &openrtb.BidRequest{
+				ID:     req.Tid,
+				Imp:    imps,
+				App:    req.App,
+				Device: req.Device,
+				User:   req.User,
+				Source: &openrtb.Source{
+					TID: req.Tid,
+				},
+				AT:   1,
+				TMax: req.TimeoutMillis,
+				Regs: req.Regs,
 			},
-			AT:   1,
-			TMax: req.TimeoutMillis,
-			Regs: req.Regs,
 		}, nil
 	}
 
@@ -142,26 +145,28 @@ func MakeOpenRTBGeneric(req *pbs.PBSRequest, bidder *pbs.PBSBidder, bidderFamily
 		userExt = req.User.Ext
 	}
 
-	return openrtb.BidRequest{
-		ID:  req.Tid,
-		Imp: imps,
-		Site: &openrtb.Site{
-			Domain: req.Domain,
-			Page:   req.Url,
+	return adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			ID:  req.Tid,
+			Imp: imps,
+			Site: &openrtb.Site{
+				Domain: req.Domain,
+				Page:   req.Url,
+			},
+			Device: req.Device,
+			User: &openrtb.User{
+				BuyerUID: buyerUID,
+				ID:       id,
+				Ext:      userExt,
+			},
+			Source: &openrtb.Source{
+				FD:  1, // upstream, aka header
+				TID: req.Tid,
+			},
+			AT:   1,
+			TMax: req.TimeoutMillis,
+			Regs: req.Regs,
 		},
-		Device: req.Device,
-		User: &openrtb.User{
-			BuyerUID: buyerUID,
-			ID:       id,
-			Ext:      userExt,
-		},
-		Source: &openrtb.Source{
-			FD:  1, // upstream, aka header
-			TID: req.Tid,
-		},
-		AT:   1,
-		TMax: req.TimeoutMillis,
-		Regs: req.Regs,
 	}, nil
 }
 

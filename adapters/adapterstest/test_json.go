@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
 
-	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/prebid/prebid-server/adapters"
+
+	"github.com/mxmCherry/openrtb"
 	"github.com/yudai/gojsondiff"
 	"github.com/yudai/gojsondiff/formatter"
-
-	"net/http"
 )
 
 // RunJSONBidderTest is a helper method intended to unit test Bidders' adapters.
@@ -97,15 +99,15 @@ func loadFile(filename string) (*testSpec, error) {
 //
 // More assertions will almost certainly be added in the future, as bugs come up.
 func runSpec(t *testing.T, filename string, spec *testSpec, bidder adapters.Bidder) {
-	actualReqs, errs := bidder.MakeRequests(&spec.BidRequest)
+	req := &adcert.BidRequest{BidRequest: &spec.BidRequest}
+	actualReqs, errs := bidder.MakeRequests(req)
 	diffErrorLists(t, fmt.Sprintf("%s: MakeRequests", filename), errs, spec.MakeRequestErrors)
 	diffHttpRequestLists(t, filename, actualReqs, spec.HttpCalls)
 
 	bidResponses := make([]*adapters.BidderResponse, 0)
-
 	var bidsErrs = make([]error, 0, len(spec.MakeBidsErrors))
 	for i := 0; i < len(actualReqs); i++ {
-		thisBidResponse, theseErrs := bidder.MakeBids(&spec.BidRequest, spec.HttpCalls[i].Request.ToRequestData(t), spec.HttpCalls[i].Response.ToResponseData(t))
+		thisBidResponse, theseErrs := bidder.MakeBids(req, spec.HttpCalls[i].Request.ToRequestData(t), spec.HttpCalls[i].Response.ToResponseData(t))
 		bidsErrs = append(bidsErrs, theseErrs...)
 		bidResponses = append(bidResponses, thisBidResponse)
 	}

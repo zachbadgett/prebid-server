@@ -17,6 +17,7 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/evanphx/json-patch"
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
 	analyticsConf "github.com/prebid/prebid-server/analytics/config"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
@@ -198,7 +199,7 @@ func readFile(t *testing.T, filename string) []byte {
 
 // doRequest populates the app with mock dependencies and sends requestData to the /openrtb2/auction endpoint.
 func doRequest(t *testing.T, requestData []byte, aliased bool) (int, string) {
-	aliasJSON := []byte{}
+	var aliasJSON []byte
 	if aliased {
 		aliasJSON = []byte(`{"ext":{"prebid":{"aliases": {"test1": "appnexus", "test2": "rubicon", "test3": "openx"}}}}`)
 	}
@@ -302,7 +303,7 @@ func TestExchangeError(t *testing.T) {
 func TestUserAgentSetting(t *testing.T) {
 	httpReq := httptest.NewRequest("POST", "/openrtb2/auction", strings.NewReader(validRequest(t, "site.json")))
 	httpReq.Header.Set("User-Agent", "foo")
-	bidReq := &openrtb.BidRequest{}
+	bidReq := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
 	setUAImplicitly(httpReq, bidReq)
 
@@ -318,9 +319,11 @@ func TestUserAgentSetting(t *testing.T) {
 func TestUserAgentOverride(t *testing.T) {
 	httpReq := httptest.NewRequest("POST", "/openrtb2/auction", strings.NewReader(validRequest(t, "site.json")))
 	httpReq.Header.Set("User-Agent", "foo")
-	bidReq := &openrtb.BidRequest{
-		Device: &openrtb.Device{
-			UA: "bar",
+	bidReq := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Device: &openrtb.Device{
+				UA: "bar",
+			},
 		},
 	}
 
@@ -332,7 +335,7 @@ func TestUserAgentOverride(t *testing.T) {
 }
 
 func TestAuctionTypeDefault(t *testing.T) {
-	bidReq := &openrtb.BidRequest{}
+	bidReq := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 	setAuctionTypeImplicitly(bidReq)
 
 	if bidReq.AT != 1 {
@@ -381,7 +384,7 @@ func TestImplicitSecure(t *testing.T) {
 func TestRefererParsing(t *testing.T) {
 	httpReq := httptest.NewRequest("POST", "/openrtb2/auction", strings.NewReader(validRequest(t, "site.json")))
 	httpReq.Header.Set("Referer", "http://test.mysite.com")
-	bidReq := &openrtb.BidRequest{}
+	bidReq := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
 	setSiteImplicitly(httpReq, bidReq)
 
@@ -515,8 +518,10 @@ func TestImplicitAMPNoExt(t *testing.T) {
 		return
 	}
 
-	bidReq := openrtb.BidRequest{
-		Site: &openrtb.Site{},
+	bidReq := adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Site: &openrtb.Site{},
+		},
 	}
 	setSiteImplicitly(httpReq, &bidReq)
 	assert.JSONEq(t, `{"amp":0}`, string(bidReq.Site.Ext))
@@ -528,9 +533,11 @@ func TestImplicitAMPOtherExt(t *testing.T) {
 		return
 	}
 
-	bidReq := openrtb.BidRequest{
-		Site: &openrtb.Site{
-			Ext: json.RawMessage(`{"other":true}`),
+	bidReq := adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Site: &openrtb.Site{
+				Ext: json.RawMessage(`{"other":true}`),
+			},
 		},
 	}
 	setSiteImplicitly(httpReq, &bidReq)
@@ -543,9 +550,11 @@ func TestExplicitAMP(t *testing.T) {
 		return
 	}
 
-	bidReq := openrtb.BidRequest{
-		Site: &openrtb.Site{
-			Ext: json.RawMessage(`{"amp":1}`),
+	bidReq := adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Site: &openrtb.Site{
+				Ext: json.RawMessage(`{"amp":1}`),
+			},
 		},
 	}
 	setSiteImplicitly(httpReq, &bidReq)
@@ -636,10 +645,10 @@ func validRequest(t *testing.T, filename string) string {
 
 // nobidExchange is a well-behaved exchange which always bids "no bid".
 type nobidExchange struct {
-	gotRequest *openrtb.BidRequest
+	gotRequest *adcert.BidRequest
 }
 
-func (e *nobidExchange) HoldAuction(ctx context.Context, bidRequest *openrtb.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
+func (e *nobidExchange) HoldAuction(ctx context.Context, bidRequest *adcert.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
 	e.gotRequest = bidRequest
 	return &openrtb.BidResponse{
 		ID:    bidRequest.ID,
@@ -650,7 +659,7 @@ func (e *nobidExchange) HoldAuction(ctx context.Context, bidRequest *openrtb.Bid
 
 type brokenExchange struct{}
 
-func (e *brokenExchange) HoldAuction(ctx context.Context, bidRequest *openrtb.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
+func (e *brokenExchange) HoldAuction(ctx context.Context, bidRequest *adcert.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
 	return nil, errors.New("Critical, unrecoverable error.")
 }
 
@@ -959,10 +968,10 @@ func (cf mockStoredReqFetcher) FetchRequests(ctx context.Context, requestIDs []s
 }
 
 type mockExchange struct {
-	lastRequest *openrtb.BidRequest
+	lastRequest *adcert.BidRequest
 }
 
-func (m *mockExchange) HoldAuction(ctx context.Context, bidRequest *openrtb.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
+func (m *mockExchange) HoldAuction(ctx context.Context, bidRequest *adcert.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
 	m.lastRequest = bidRequest
 	return &openrtb.BidResponse{
 		SeatBid: []openrtb.SeatBid{{

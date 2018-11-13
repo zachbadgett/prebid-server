@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -21,8 +23,10 @@ func TestAppNotSupported(t *testing.T) {
 		},
 	}
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	bids, errs := constrained.MakeRequests(&openrtb.BidRequest{
-		App: &openrtb.App{},
+	bids, errs := constrained.MakeRequests(&adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			App: &openrtb.App{},
+		},
 	})
 	if !assert.Len(t, errs, 1) {
 		return
@@ -42,8 +46,10 @@ func TestSiteNotSupported(t *testing.T) {
 		},
 	}
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	bids, errs := constrained.MakeRequests(&openrtb.BidRequest{
-		Site: &openrtb.Site{},
+	bids, errs := constrained.MakeRequests(&adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Site: &openrtb.Site{},
+		},
 	})
 	if !assert.Len(t, errs, 1) {
 		return
@@ -67,25 +73,27 @@ func TestImpFiltering(t *testing.T) {
 	}
 
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	_, errs := constrained.MakeRequests(&openrtb.BidRequest{
-		Imp: []openrtb.Imp{
-			{
-				ID:    "imp-1",
-				Video: &openrtb.Video{},
+	_, errs := constrained.MakeRequests(&adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			Imp: []openrtb.Imp{
+				{
+					ID:    "imp-1",
+					Video: &openrtb.Video{},
+				},
+				{
+					Native: &openrtb.Native{},
+				},
+				{
+					ID:     "imp-2",
+					Video:  &openrtb.Video{},
+					Native: &openrtb.Native{},
+				},
+				{
+					Banner: &openrtb.Banner{},
+				},
 			},
-			{
-				Native: &openrtb.Native{},
-			},
-			{
-				ID:     "imp-2",
-				Video:  &openrtb.Video{},
-				Native: &openrtb.Native{},
-			},
-			{
-				Banner: &openrtb.Banner{},
-			},
+			Site: &openrtb.Site{},
 		},
-		Site: &openrtb.Site{},
 	})
 	if !assert.Len(t, errs, 6) {
 		return
@@ -112,15 +120,15 @@ func TestImpFiltering(t *testing.T) {
 }
 
 type mockBidder struct {
-	gotRequest *openrtb.BidRequest
+	gotRequest *adcert.BidRequest
 }
 
-func (m *mockBidder) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (m *mockBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	m.gotRequest = request
 	return nil, []error{errors.New("mock MakeRequests error")}
 }
 
-func (m *mockBidder) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (m *mockBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	return nil, []error{errors.New("mock MakeBids error")}
 }
 

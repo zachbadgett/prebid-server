@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/glog"
 
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/pbs"
 
 	"golang.org/x/net/context/ctxhttp"
@@ -531,7 +532,7 @@ func NewRubiconBidder(client *http.Client, uri string, xuser string, xpass strin
 	}
 }
 
-func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *RubiconAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	numRequests := len(request.Imp)
 	errs := make([]error, 0, len(request.Imp))
 	var err error
@@ -670,7 +671,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 	return requestData, errs
 }
 
-func (a *RubiconAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *RubiconAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}
@@ -694,7 +695,7 @@ func (a *RubiconAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalR
 		}}
 	}
 
-	var bidReq openrtb.BidRequest
+	var bidReq adcert.BidRequest
 	if err := json.Unmarshal(externalRequest.Body, &bidReq); err != nil {
 		return nil, []error{err}
 	}

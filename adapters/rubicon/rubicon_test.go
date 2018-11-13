@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/prebid/prebid-server/adapters/adapterstest"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -71,7 +72,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var breq openrtb.BidRequest
+	var breq adcert.BidRequest
 	err = json.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -984,33 +985,34 @@ func TestOpenRTBRequest(t *testing.T) {
 		devicePxRatio: 4.0,
 	}
 
-	request := &openrtb.BidRequest{
-		ID: "test-request-id",
-		Imp: []openrtb.Imp{{
-			ID: "test-imp-banner-id",
-			Banner: &openrtb.Banner{
-				Format: []openrtb.Format{
-					SIZE_ID[15],
-					SIZE_ID[10],
+	request := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			ID: "test-request-id",
+			Imp: []openrtb.Imp{{
+				ID: "test-imp-banner-id",
+				Banner: &openrtb.Banner{
+					Format: []openrtb.Format{
+						SIZE_ID[15],
+						SIZE_ID[10],
+					},
 				},
-			},
-			Ext: json.RawMessage(`{"bidder": {
+				Ext: json.RawMessage(`{"bidder": {
 				"zoneId": 8394,
 				"siteId": 283282,
 				"accountId": 7891,
 				"inventory": {"key1" : "val1"},
 				"visitor": {"key2" : "val2"}
 			}}`),
-		}, {
-			ID: "test-imp-video-id",
-			Video: &openrtb.Video{
-				W:           640,
-				H:           360,
-				MIMEs:       []string{"video/mp4"},
-				MinDuration: 15,
-				MaxDuration: 30,
-			},
-			Ext: json.RawMessage(`{"bidder": {
+			}, {
+				ID: "test-imp-video-id",
+				Video: &openrtb.Video{
+					W:           640,
+					H:           360,
+					MIMEs:       []string{"video/mp4"},
+					MinDuration: 15,
+					MaxDuration: 30,
+				},
+				Ext: json.RawMessage(`{"bidder": {
 				"zoneId": 7780,
 				"siteId": 283282,
 				"accountId": 7891,
@@ -1025,17 +1027,18 @@ func TestOpenRTBRequest(t *testing.T) {
 					"skipdelay": 5
 				}
 			}}`),
-		}},
-		Device: &openrtb.Device{
-			PxRatio: rubidata.devicePxRatio,
-		},
-		User: &openrtb.User{
-			Ext: json.RawMessage(`{"digitrust": {
+			}},
+			Device: &openrtb.Device{
+				PxRatio: rubidata.devicePxRatio,
+			},
+			User: &openrtb.User{
+				Ext: json.RawMessage(`{"digitrust": {
 				"id": "some-digitrust-id",
 				"keyv": 1,
 				"pref": 0
 
 			}}`),
+			},
 		},
 	}
 
@@ -1054,7 +1057,7 @@ func TestOpenRTBRequest(t *testing.T) {
 			t.Errorf("Expected a POST message. Got %s", httpReq.Method)
 		}
 
-		var rpRequest openrtb.BidRequest
+		var rpRequest adcert.BidRequest
 		if err := json.Unmarshal(httpReq.Body, &rpRequest); err != nil {
 			t.Fatalf("Failed to unmarshal HTTP request: %v", rpRequest)
 		}
@@ -1153,22 +1156,24 @@ func TestOpenRTBSurpriseResponse(t *testing.T) {
 }
 
 func TestOpenRTBStandardResponse(t *testing.T) {
-	request := &openrtb.BidRequest{
-		ID: "test-request-id",
-		Imp: []openrtb.Imp{{
-			ID: "test-imp-id",
-			Banner: &openrtb.Banner{
-				Format: []openrtb.Format{{
-					W: 320,
-					H: 50,
-				}},
-			},
-			Ext: json.RawMessage(`{"bidder": {
+	request := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			ID: "test-request-id",
+			Imp: []openrtb.Imp{{
+				ID: "test-imp-id",
+				Banner: &openrtb.Banner{
+					Format: []openrtb.Format{{
+						W: 320,
+						H: 50,
+					}},
+				},
+				Ext: json.RawMessage(`{"bidder": {
 				"accountId": 2763,
 				"siteId": 68780,
 				"zoneId": 327642
 			}}`),
-		}},
+			}},
+		},
 	}
 
 	requestJson, _ := json.Marshal(request)

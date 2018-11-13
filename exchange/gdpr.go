@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/prebid/prebid-server/adcert"
+
 	"github.com/mxmCherry/openrtb"
 )
 
 // ExtractGDPR will pull the gdpr flag from an openrtb request
-func extractGDPR(bidRequest *openrtb.BidRequest, usersyncIfAmbiguous bool) (gdpr int) {
+func extractGDPR(bidRequest *adcert.BidRequest, usersyncIfAmbiguous bool) (gdpr int) {
 	var re regsExt
 	var err error
 	if bidRequest.Regs != nil {
@@ -27,7 +29,7 @@ func extractGDPR(bidRequest *openrtb.BidRequest, usersyncIfAmbiguous bool) (gdpr
 }
 
 // ExtractConsent will pull the consent string from an openrtb request
-func extractConsent(bidRequest *openrtb.BidRequest) (consent string) {
+func extractConsent(bidRequest *adcert.BidRequest) (consent string) {
 	var ue userExt
 	var err error
 	if bidRequest.User != nil {
@@ -49,7 +51,7 @@ type regsExt struct {
 }
 
 // cleanPI removes IP address last byte, device ID, buyer ID, and rounds off lattitude/longitude
-func cleanPI(bidRequest *openrtb.BidRequest, isAMP bool) {
+func cleanPI(bidRequest *adcert.BidRequest, isAMP bool) {
 	if bidRequest.User != nil {
 		// Need to duplicate pointer objects
 		user := *bidRequest.User

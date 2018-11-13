@@ -7,6 +7,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -26,7 +27,7 @@ type openxReqExt struct {
 	BidderConfig string `json:"bc"`
 }
 
-func (a *OpenxAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *OpenxAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 	var errs []error
 	var bannerImps []openrtb.Imp
 	var videoImps []openrtb.Imp
@@ -42,8 +43,7 @@ func (a *OpenxAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.Re
 
 	var adapterRequests []*adapters.RequestData
 	// Make a copy as we don't want to change the original request
-	reqCopy := *request
-
+	reqCopy := *request.BidRequest
 	reqCopy.Imp = bannerImps
 	adapterReq, errors := a.makeRequest(&reqCopy)
 	if adapterReq != nil {
@@ -145,7 +145,7 @@ func preprocess(imp *openrtb.Imp, reqExt *openxReqExt) error {
 	return nil
 }
 
-func (a *OpenxAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *OpenxAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

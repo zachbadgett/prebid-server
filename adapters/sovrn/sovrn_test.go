@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
 
@@ -241,7 +242,7 @@ func TestNotFoundResponse(t *testing.T) {
 
 func CreateSovrnService(tagsToBid map[string]bool) adapterstest.OrtbMockService {
 	service := adapterstest.OrtbMockService{}
-	var lastBidRequest openrtb.BidRequest
+	var lastBidRequest adcert.BidRequest
 	var lastHttpReq http.Request
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -252,7 +253,7 @@ func CreateSovrnService(tagsToBid map[string]bool) adapterstest.OrtbMockService 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		var breq openrtb.BidRequest
+		var breq adcert.BidRequest
 		err = json.Unmarshal(body, &breq)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

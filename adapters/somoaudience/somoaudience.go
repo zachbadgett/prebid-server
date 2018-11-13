@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -23,7 +24,7 @@ type somoaudienceReqExt struct {
 	BidderConfig string `json:"prebid"`
 }
 
-func (a *SomoaudienceAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *SomoaudienceAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
 
 	var errs []error
 	var bannerImps []openrtb.Imp
@@ -73,7 +74,7 @@ func (a *SomoaudienceAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adap
 
 }
 
-func (a *SomoaudienceAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.RequestData, []error) {
+func (a *SomoaudienceAdapter) makeRequest(request *adcert.BidRequest) (*adapters.RequestData, []error) {
 	var errs []error
 	var err error
 	var validImps []openrtb.Imp
@@ -150,7 +151,7 @@ func preprocess(imp *openrtb.Imp, reqExt *somoaudienceReqExt) (string, error) {
 	return somoExt.PlacementHash, nil
 }
 
-func (a *SomoaudienceAdapter) MakeBids(bidReq *openrtb.BidRequest, unused *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *SomoaudienceAdapter) MakeBids(bidReq *adcert.BidRequest, unused *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/prebid/prebid-server/adapters/adapterstest"
+	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -297,16 +298,18 @@ func TestOpenRTBRequest(t *testing.T) {
 
 func TestOpenRTBIncorrectRequest(t *testing.T) {
 	bidder := new(AdformAdapter)
-	request := &openrtb.BidRequest{
-		ID: "test-request-id",
-		Imp: []openrtb.Imp{
-			{ID: "incorrect-bidder-field", Ext: json.RawMessage(`{"bidder1": { "mid": "32344" }}`)},
-			{ID: "incorrect-adform-params", Ext: json.RawMessage(`{"bidder": { : "33" }}`)},
-			{ID: "mid-integer", Ext: json.RawMessage(`{"bidder": { "mid": 1.234 }}`)},
-			{ID: "mid-greater-then-zero", Ext: json.RawMessage(`{"bidder": { "mid": -1 }}`)},
+	request := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			ID: "test-request-id",
+			Imp: []openrtb.Imp{
+				{ID: "incorrect-bidder-field", Ext: json.RawMessage(`{"bidder1": { "mid": "32344" }}`)},
+				{ID: "incorrect-adform-params", Ext: json.RawMessage(`{"bidder": { : "33" }}`)},
+				{ID: "mid-integer", Ext: json.RawMessage(`{"bidder": { "mid": 1.234 }}`)},
+				{ID: "mid-greater-then-zero", Ext: json.RawMessage(`{"bidder": { "mid": -1 }}`)},
+			},
+			Device: &openrtb.Device{UA: "ua", IP: "ip"},
+			User:   &openrtb.User{BuyerUID: "buyerUID"},
 		},
-		Device: &openrtb.Device{UA: "ua", IP: "ip"},
-		User:   &openrtb.User{BuyerUID: "buyerUID"},
 	}
 
 	httpRequests, errs := bidder.MakeRequests(request)
@@ -337,28 +340,30 @@ func createTestData() *aBidInfo {
 	return testData
 }
 
-func createOpenRtbRequest(testData *aBidInfo) *openrtb.BidRequest {
+func createOpenRtbRequest(testData *aBidInfo) *adcert.BidRequest {
 	secure := int8(0)
 	if testData.secure {
 		secure = int8(1)
 	}
 
-	bidRequest := &openrtb.BidRequest{
-		ID:  "test-request-id",
-		Imp: make([]openrtb.Imp, len(testData.tags)),
-		Site: &openrtb.Site{
-			Page: testData.referrer,
-		},
-		Device: &openrtb.Device{
-			UA:  testData.deviceUA,
-			IP:  testData.deviceIP,
-			IFA: testData.deviceIFA,
-		},
-		Source: &openrtb.Source{
-			TID: testData.tid,
-		},
-		User: &openrtb.User{
-			BuyerUID: testData.buyerUID,
+	bidRequest := &adcert.BidRequest{
+		BidRequest: &openrtb.BidRequest{
+			ID:  "test-request-id",
+			Imp: make([]openrtb.Imp, len(testData.tags)),
+			Site: &openrtb.Site{
+				Page: testData.referrer,
+			},
+			Device: &openrtb.Device{
+				UA:  testData.deviceUA,
+				IP:  testData.deviceIP,
+				IFA: testData.deviceIFA,
+			},
+			Source: &openrtb.Source{
+				TID: testData.tid,
+			},
+			User: &openrtb.User{
+				BuyerUID: testData.buyerUID,
+			},
 		},
 	}
 	for i, tag := range testData.tags {

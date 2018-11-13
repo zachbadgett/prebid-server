@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adcert"
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/yudai/gojsondiff"

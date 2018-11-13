@@ -60,7 +60,7 @@ func CreateSignature(privateKey *ecdsa.PrivateKey, request *BidRequest) (msg str
 	return msg, sig, nil
 }
 
-func LoadKeys() (publicKey *ecdsa.PublicKey, privateKey *ecdsa.PrivateKey, err error) {
+func LoadKeys() (privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey, err error) {
 	cert, err := tls.X509KeyPair([]byte(public), []byte(private))
 	if err != nil {
 		return nil, nil, err
@@ -68,7 +68,7 @@ func LoadKeys() (publicKey *ecdsa.PublicKey, privateKey *ecdsa.PrivateKey, err e
 	privateKey = cert.PrivateKey.(*ecdsa.PrivateKey)
 	cert2, _ := x509.ParseCertificate(cert.Certificate[0])
 	publicKey = cert2.PublicKey.(*ecdsa.PublicKey)
-	return publicKey, privateKey, err
+	return privateKey, publicKey, err
 }
 
 //func LoadKeys(pub, priv string) (publicKey *ecdsa.PublicKey, privateKey *ecdsa.PrivateKey, err error) {

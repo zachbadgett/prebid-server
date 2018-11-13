@@ -2,14 +2,14 @@ package adapterstest
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"net/http"
+	"github.com/prebid/prebid-server/adcert"
 
 	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adcert"
 )
 
 // OrtbMockService Represents a scaffolded OpenRTB service.

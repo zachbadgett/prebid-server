@@ -12,14 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/buger/jsonparser"
-	"github.com/evanphx/json-patch"
-	"github.com/golang/glog"
-	"github.com/julienschmidt/httprouter"
-	"github.com/mssola/user_agent"
-	"github.com/mxmCherry/openrtb"
-	"github.com/mxmCherry/openrtb/native"
-	nativeRequests "github.com/mxmCherry/openrtb/native/request"
 	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/analytics"
 	"github.com/prebid/prebid-server/config"
@@ -30,6 +22,15 @@ import (
 	"github.com/prebid/prebid-server/prebid"
 	"github.com/prebid/prebid-server/stored_requests"
 	"github.com/prebid/prebid-server/usersync"
+
+	"github.com/buger/jsonparser"
+	"github.com/evanphx/json-patch"
+	"github.com/golang/glog"
+	"github.com/julienschmidt/httprouter"
+	"github.com/mssola/user_agent"
+	"github.com/mxmCherry/openrtb"
+	"github.com/mxmCherry/openrtb/native"
+	nativeRequests "github.com/mxmCherry/openrtb/native/request"
 	"golang.org/x/net/publicsuffix"
 )
 

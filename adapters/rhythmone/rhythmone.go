@@ -3,14 +3,14 @@ package rhythmone
 import (
 	"encoding/json"
 	"fmt"
-
 	"net/http"
 
-	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adcert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
+
+	"github.com/mxmCherry/openrtb"
 )
 
 type RhythmoneAdapter struct {

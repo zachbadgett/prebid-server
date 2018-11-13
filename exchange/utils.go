@@ -23,7 +23,7 @@ import (
 //   3. BidRequest.User.BuyerUID will be set to that Bidder's ID.
 func cleanOpenRTBRequests(ctx context.Context, orig *adcert.BidRequest, usersyncs IdFetcher, blables map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels, labels pbsmetrics.Labels, gDPR gdpr.Permissions, usersyncIfAmbiguous bool) (requestsByBidder map[openrtb_ext.BidderName]*adcert.BidRequest, aliases map[string]string, errs []error) {
 	// Add signature.
-	_, priv, err := adcert.LoadKeys()
+	priv, _, err := adcert.LoadKeys()
 	if err != nil {
 		return nil, nil, append(errs, err)
 	}

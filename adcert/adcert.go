@@ -31,16 +31,17 @@ func CreateSignature(privateKey *ecdsa.PrivateKey, request *BidRequest) (msg str
 	}
 	m := map[string]string{
 		"tid":     request.ID,
-		"pcv":     request.PublisherCertificateVersion,
+		"cert":    fmt.Sprintf("ads-cert.%s.txt", request.PublisherCertificateVersion),
 		"domain":  domain,
 		"bundle":  bundle,
 		"consent": "",
-		"ct":      "d",
+		"ft":      "d",
 		"ip":      ip,
 		"ipv6":    ipv6,
 		"ifa":     ifa,
 		"ua":      ua,
-		"vs":      "",
+		"w":       "",
+		"h":       "",
 	}
 	var keys []string
 	for k := range m {

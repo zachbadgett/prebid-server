@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	analyticsConf "github.com/prebid/prebid-server/analytics/config"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/exchange"
@@ -184,7 +184,7 @@ func TestAmpDebug(t *testing.T) {
 
 // Prevents #452
 func TestAmpTargetingDefaults(t *testing.T) {
-	req := &adcert.BidRequest{
+	req := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{},
 	}
 	if errs := defaultRequestExt(req); len(errs) != 0 {
@@ -370,10 +370,10 @@ func (cf *mockAmpStoredReqFetcher) FetchRequests(ctx context.Context, requestIDs
 }
 
 type mockAmpExchange struct {
-	lastRequest *adcert.BidRequest
+	lastRequest *adscert.BidRequest
 }
 
-func (m *mockAmpExchange) HoldAuction(ctx context.Context, bidRequest *adcert.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
+func (m *mockAmpExchange) HoldAuction(ctx context.Context, bidRequest *adscert.BidRequest, ids exchange.IdFetcher, labels pbsmetrics.Labels) (*openrtb.BidResponse, error) {
 	m.lastRequest = bidRequest
 
 	response := &openrtb.BidResponse{

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adform"
 	"github.com/prebid/prebid-server/adapters/appnexus"
@@ -25,6 +23,7 @@ import (
 	"github.com/prebid/prebid-server/adapters/pulsepoint"
 	"github.com/prebid/prebid-server/adapters/rubicon"
 	"github.com/prebid/prebid-server/adapters/sovrn"
+	"github.com/prebid/prebid-server/adscert"
 	analyticsConf "github.com/prebid/prebid-server/analytics/config"
 	"github.com/prebid/prebid-server/cache"
 	"github.com/prebid/prebid-server/cache/dummycache"
@@ -237,7 +236,7 @@ func New(cfg *config.Configuration) (r *Router, err error) {
 	r.GET("/bidders/params", NewJsonDirectoryServer(schemaDirectory, paramsValidator, defaultAliases))
 	r.POST("/cookie_sync", endpoints.NewCookieSyncEndpoint(syncers, cfg, gdprPerms, r.MetricsEngine, pbsAnalytics))
 	r.GET("/status", endpoints.NewStatusEndpoint(cfg.StatusResponse))
-	r.GET("/adcert/:file", adcert.NewEndpoint())
+	r.GET("/adscert/:file", adscert.NewEndpoint())
 	r.GET("/", serveIndex)
 	r.ServeFiles("/static/*filepath", http.Dir("static"))
 

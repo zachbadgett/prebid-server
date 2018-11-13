@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -39,7 +39,7 @@ type adaptedBidder interface {
 	//
 	// Any errors will be user-facing in the API.
 	// Error messages should help publishers understand what might account for "bad" bids.
-	requestBid(ctx context.Context, request *adcert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error)
+	requestBid(ctx context.Context, request *adscert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error)
 }
 
 // pbsOrtbBid is a Bid returned by an adaptedBidder.
@@ -87,7 +87,7 @@ type bidderAdapter struct {
 	Client *http.Client
 }
 
-func (bidder *bidderAdapter) requestBid(ctx context.Context, request *adcert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error) {
+func (bidder *bidderAdapter) requestBid(ctx context.Context, request *adscert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error) {
 	reqData, errs := bidder.Bidder.MakeRequests(request)
 
 	if len(reqData) == 0 {

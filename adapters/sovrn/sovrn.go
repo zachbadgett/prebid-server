@@ -14,7 +14,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
@@ -49,7 +49,7 @@ func (s *SovrnAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 		return nil, err
 	}
 
-	sovrnReq := adcert.BidRequest{
+	sovrnReq := adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			ID:   sReq.ID,
 			Imp:  sReq.Imp,
@@ -173,7 +173,7 @@ func (s *SovrnAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 	return bids, nil
 }
 
-func (s *SovrnAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (s *SovrnAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	errs := make([]error, 0, len(request.Imp))
 
 	for i := 0; i < len(request.Imp); i++ {
@@ -225,7 +225,7 @@ func addHeaderIfNonEmpty(headers http.Header, headerName string, headerValue str
 		headers.Add(headerName, headerValue)
 	}
 }
-func (s *SovrnAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (s *SovrnAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

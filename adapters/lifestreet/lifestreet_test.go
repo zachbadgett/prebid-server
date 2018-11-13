@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -54,7 +54,7 @@ func DummyLifestreetServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var breq adcert.BidRequest
+	var breq adscert.BidRequest
 	err = json.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

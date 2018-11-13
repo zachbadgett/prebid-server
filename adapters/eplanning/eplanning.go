@@ -8,7 +8,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -22,7 +22,7 @@ type EPlanningAdapter struct {
 	URI  string
 }
 
-func (adapter *EPlanningAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (adapter *EPlanningAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	errors := make([]error, 0, len(request.Imp))
 	totalImps := len(request.Imp)
 	sourceMapper := make(map[string][]int)
@@ -119,7 +119,7 @@ func addHeaderIfNonEmpty(headers http.Header, headerName string, headerValue str
 	}
 }
 
-func (adapter *EPlanningAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (adapter *EPlanningAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

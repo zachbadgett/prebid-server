@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/buger/jsonparser"
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/gdpr"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbsmetrics"
@@ -21,13 +20,13 @@ import (
 //   1. BidRequest.Imp[].Ext will only contain the "prebid" field and a "bidder" field which has the params for the intended Bidder.
 //   2. Every BidRequest.Imp[] requested Bids from the Bidder who keys it.
 //   3. BidRequest.User.BuyerUID will be set to that Bidder's ID.
-func cleanOpenRTBRequests(ctx context.Context, orig *adcert.BidRequest, usersyncs IdFetcher, blables map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels, labels pbsmetrics.Labels, gDPR gdpr.Permissions, usersyncIfAmbiguous bool) (requestsByBidder map[openrtb_ext.BidderName]*adcert.BidRequest, aliases map[string]string, errs []error) {
+func cleanOpenRTBRequests(ctx context.Context, orig *adscert.BidRequest, usersyncs IdFetcher, blables map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels, labels pbsmetrics.Labels, gDPR gdpr.Permissions, usersyncIfAmbiguous bool) (requestsByBidder map[openrtb_ext.BidderName]*adscert.BidRequest, aliases map[string]string, errs []error) {
 	// Add signature.
-	priv, _, err := adcert.LoadKeys()
+	priv, _, err := adscert.LoadKeys()
 	if err != nil {
 		return nil, nil, append(errs, err)
 	}
-	_, signature, err := adcert.CreateSignature(priv, orig)
+	_, signature, err := adscert.CreateSignature(priv, orig)
 	if err != nil {
 		return nil, nil, append(errs, err)
 	}
@@ -60,8 +59,8 @@ func cleanOpenRTBRequests(ctx context.Context, orig *adcert.BidRequest, usersync
 	return
 }
 
-func splitBidRequest(req *adcert.BidRequest, impsByBidder map[string][]openrtb.Imp, aliases map[string]string, usersyncs IdFetcher, blabels map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels, labels pbsmetrics.Labels) (map[openrtb_ext.BidderName]*adcert.BidRequest, []error) {
-	requestsByBidder := make(map[openrtb_ext.BidderName]*adcert.BidRequest, len(impsByBidder))
+func splitBidRequest(req *adscert.BidRequest, impsByBidder map[string][]openrtb.Imp, aliases map[string]string, usersyncs IdFetcher, blabels map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels, labels pbsmetrics.Labels) (map[openrtb_ext.BidderName]*adscert.BidRequest, []error) {
+	requestsByBidder := make(map[openrtb_ext.BidderName]*adscert.BidRequest, len(impsByBidder))
 	explicitBuyerUIDs, err := extractBuyerUIDs(req.User)
 	if err != nil {
 		return nil, []error{err}
@@ -183,7 +182,7 @@ func sanitizedImpCopy(imp *openrtb.Imp, ext map[string]json.RawMessage, intended
 //
 // In this function, "givenBidder" may or may not be an alias. "coreBidder" must *not* be an alias.
 // It returns true if a Cookie User Sync existed, and false otherwise.
-func prepareUser(req *adcert.BidRequest, givenBidder string, coreBidder openrtb_ext.BidderName, explicitBuyerUIDs map[string]string, usersyncs IdFetcher) bool {
+func prepareUser(req *adscert.BidRequest, givenBidder string, coreBidder openrtb_ext.BidderName, explicitBuyerUIDs map[string]string, usersyncs IdFetcher) bool {
 	cookieId, hadCookie := usersyncs.GetId(coreBidder)
 
 	if id, ok := explicitBuyerUIDs[givenBidder]; ok {
@@ -235,7 +234,7 @@ func parseImpExts(imps []openrtb.Imp) ([]map[string]json.RawMessage, error) {
 }
 
 // parseAliases parses the aliases from the BidRequest
-func parseAliases(orig *adcert.BidRequest) (map[string]string, []error) {
+func parseAliases(orig *adscert.BidRequest) (map[string]string, []error) {
 	var aliases map[string]string
 	if value, dataType, _, err := jsonparser.Get(orig.Ext, "prebid", "aliases"); dataType == jsonparser.Object && err == nil {
 		if err := json.Unmarshal(value, &aliases); err != nil {

@@ -1,4 +1,4 @@
-package adcert
+package adscert
 
 import "github.com/mxmCherry/openrtb"
 

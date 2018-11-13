@@ -15,7 +15,7 @@ import (
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/pbs"
@@ -44,7 +44,7 @@ func DummyPubMaticServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var breq adcert.BidRequest
+	var breq adscert.BidRequest
 	err = json.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

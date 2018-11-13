@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/analytics"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
@@ -168,8 +168,8 @@ func (deps *endpointDeps) Auction(w http.ResponseWriter, r *http.Request, _ http
 // possible, it will return errors with messages that suggest improvements.
 //
 // If the errors list has at least one element, then no guarantees are made about the returned request.
-func (deps *endpointDeps) parseRequest(httpRequest *http.Request) (req *adcert.BidRequest, errs []error) {
-	req = &adcert.BidRequest{}
+func (deps *endpointDeps) parseRequest(httpRequest *http.Request) (req *adscert.BidRequest, errs []error) {
+	req = &adscert.BidRequest{}
 	errs = nil
 
 	// Pull the request body into a buffer, so we have it for later usage.
@@ -232,7 +232,7 @@ func parseTimeout(requestJson []byte, defaultTimeout time.Duration) time.Duratio
 	return defaultTimeout
 }
 
-func (deps *endpointDeps) validateRequest(req *adcert.BidRequest) []error {
+func (deps *endpointDeps) validateRequest(req *adscert.BidRequest) []error {
 	errL := []error{}
 	if req.ID == "" {
 		return []error{errors.New("request missing required field: \"id\"")}
@@ -818,7 +818,7 @@ func validateRegs(regs *openrtb.Regs) error {
 // OpenRTB properties from the headers and other implicit info.
 //
 // This function _should not_ override any fields which were defined explicitly by the caller in the request.
-func (deps *endpointDeps) setFieldsImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func (deps *endpointDeps) setFieldsImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	setDeviceImplicitly(httpReq, bidReq)
 
 	// Per the OpenRTB spec: A bid request must not contain both a Site and an App object.
@@ -832,14 +832,14 @@ func (deps *endpointDeps) setFieldsImplicitly(httpReq *http.Request, bidReq *adc
 }
 
 // setDeviceImplicitly uses implicit info from httpReq to populate bidReq.Device
-func setDeviceImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func setDeviceImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	setIPImplicitly(httpReq, bidReq) // Fixes #230
 	setUAImplicitly(httpReq, bidReq)
 }
 
 // setAuctionTypeImplicitly sets the auction type to 1 if it wasn't on the request,
 // since header bidding is generally a first-price auction.
-func setAuctionTypeImplicitly(bidReq *adcert.BidRequest) {
+func setAuctionTypeImplicitly(bidReq *adscert.BidRequest) {
 	if bidReq.AT == 0 {
 		bidReq.AT = 1
 	}
@@ -847,7 +847,7 @@ func setAuctionTypeImplicitly(bidReq *adcert.BidRequest) {
 }
 
 // setSiteImplicitly uses implicit info from httpReq to populate bidReq.Site
-func setSiteImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func setSiteImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	if bidReq.Site == nil || bidReq.Site.Page == "" || bidReq.Site.Domain == "" {
 		referrerCandidate := httpReq.Referer()
 		if parsedUrl, err := url.Parse(referrerCandidate); err == nil {
@@ -987,7 +987,7 @@ func getStoredRequestId(data []byte) (string, bool, error) {
 }
 
 // setUserImplicitly uses implicit info from httpReq to populate bidReq.User
-func (deps *endpointDeps) setUserImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func (deps *endpointDeps) setUserImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	if bidReq.User == nil || bidReq.User.ID == "" {
 		if id, ok := parseUserID(deps.cfg, httpReq); ok {
 			if bidReq.User == nil {
@@ -1001,7 +1001,7 @@ func (deps *endpointDeps) setUserImplicitly(httpReq *http.Request, bidReq *adcer
 }
 
 // setIPImplicitly sets the IP address on bidReq, if it's not explicitly defined and we can figure it out.
-func setIPImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func setIPImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	if bidReq.BidRequest != nil && bidReq.Device == nil || bidReq.Device.IP == "" {
 		if ip := prebid.GetIP(httpReq); ip != "" {
 			if bidReq.Device == nil {
@@ -1013,7 +1013,7 @@ func setIPImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
 }
 
 // setUAImplicitly sets the User Agent on bidReq, if it's not explicitly defined and it's defined on the request.
-func setUAImplicitly(httpReq *http.Request, bidReq *adcert.BidRequest) {
+func setUAImplicitly(httpReq *http.Request, bidReq *adscert.BidRequest) {
 	if bidReq.Device == nil || bidReq.Device.UA == "" {
 		if ua := httpReq.UserAgent(); ua != "" {
 			if bidReq.Device == nil {

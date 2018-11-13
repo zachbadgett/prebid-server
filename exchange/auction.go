@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/prebid_cache_client"
@@ -58,7 +58,7 @@ func (a *auction) setRoundedPrices(priceGranularity openrtb_ext.PriceGranularity
 	a.roundedPrices = roundedPrices
 }
 
-func (a *auction) doCache(ctx context.Context, cache prebid_cache_client.Client, bids bool, vast bool, bidRequest *adcert.BidRequest, ttlBuffer int64, defaultTTLs *config.DefaultTTLs) []error {
+func (a *auction) doCache(ctx context.Context, cache prebid_cache_client.Client, bids bool, vast bool, bidRequest *adscert.BidRequest, ttlBuffer int64, defaultTTLs *config.DefaultTTLs) []error {
 	if !bids && !vast {
 		return nil
 	}

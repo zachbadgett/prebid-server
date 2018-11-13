@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/pbs"
 
 	"fmt"
@@ -53,7 +53,7 @@ func dummyIXServer(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 
-	var breq adcert.BidRequest
+	var breq adscert.BidRequest
 	err = json.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -171,7 +171,7 @@ func TestIxTimeoutMultipleSlots(t *testing.T) {
 			defer r.Body.Close()
 			body, err := ioutil.ReadAll(r.Body)
 
-			var breq adcert.BidRequest
+			var breq adscert.BidRequest
 			err = json.Unmarshal(body, &breq)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -405,7 +405,7 @@ func TestIxMismatchUnitCode(t *testing.T) {
 			defer r.Body.Close()
 			body, err := ioutil.ReadAll(r.Body)
 
-			var breq adcert.BidRequest
+			var breq adscert.BidRequest
 			err = json.Unmarshal(body, &breq)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)

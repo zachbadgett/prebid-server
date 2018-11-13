@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestExtractGDPRFound(t *testing.T) {
-	gdprTest := &adcert.BidRequest{
+	gdprTest := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			User: &openrtb.User{
 				Ext: json.RawMessage(`{"consent": "BOS2bx5OS2bx5ABABBAAABoAAAAAFA"}`),
@@ -34,7 +33,7 @@ func TestExtractGDPRFound(t *testing.T) {
 }
 
 func TestGDPRUnknown(t *testing.T) {
-	gdprTest := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
+	gdprTest := &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
 	gdpr := extractGDPR(gdprTest, false)
 	consent := extractConsent(gdprTest)
@@ -48,9 +47,9 @@ func TestGDPRUnknown(t *testing.T) {
 }
 
 func TestCleanPI(t *testing.T) {
-	bidReqOrig := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
+	bidReqOrig := &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
-	adCopy := &adcert.BidRequest{}
+	adCopy := &adscert.BidRequest{}
 	bidReqCopy := *bidReqOrig.BidRequest
 	adCopy.BidRequest = &bidReqCopy
 	// Make sure cleanIP handles the empty case
@@ -94,7 +93,7 @@ func TestCleanPI(t *testing.T) {
 }
 
 func TestCleanPIAmp(t *testing.T) {
-	bidReqOrig := &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}
+	bidReqOrig := &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}
 
 	bidReqCopy := bidReqOrig
 	// Make sure cleanIP handles the empty case

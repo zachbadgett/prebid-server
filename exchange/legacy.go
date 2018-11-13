@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -34,7 +34,7 @@ type adaptedAdapter struct {
 //
 // This is not ideal. OpenRTB provides a superset of the legacy data structures.
 // For requests which use those features, the best we can do is respond with "no bid".
-func (bidder *adaptedAdapter) requestBid(ctx context.Context, request *adcert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error) {
+func (bidder *adaptedAdapter) requestBid(ctx context.Context, request *adscert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (*pbsOrtbSeatBid, []error) {
 	legacyRequest, legacyBidder, errs := bidder.toLegacyAdapterInputs(request, name)
 	if legacyRequest == nil || legacyBidder == nil {
 		return nil, errs
@@ -59,7 +59,7 @@ func (bidder *adaptedAdapter) requestBid(ctx context.Context, request *adcert.Bi
 // toLegacyAdapterInputs is a best-effort transformation of an OpenRTB BidRequest into the args needed to run a legacy Adapter.
 // If the OpenRTB request is too complex, it fails with an error.
 // If the error is nil, then the PBSRequest and PBSBidder are valid.
-func (bidder *adaptedAdapter) toLegacyAdapterInputs(req *adcert.BidRequest, name openrtb_ext.BidderName) (*pbs.PBSRequest, *pbs.PBSBidder, []error) {
+func (bidder *adaptedAdapter) toLegacyAdapterInputs(req *adscert.BidRequest, name openrtb_ext.BidderName) (*pbs.PBSRequest, *pbs.PBSBidder, []error) {
 	legacyReq, err := bidder.toLegacyRequest(req)
 	if err != nil {
 		return nil, nil, []error{err}
@@ -73,7 +73,7 @@ func (bidder *adaptedAdapter) toLegacyAdapterInputs(req *adcert.BidRequest, name
 	return legacyReq, legacyBidder, errs
 }
 
-func (bidder *adaptedAdapter) toLegacyRequest(req *adcert.BidRequest) (*pbs.PBSRequest, error) {
+func (bidder *adaptedAdapter) toLegacyRequest(req *adscert.BidRequest) (*pbs.PBSRequest, error) {
 	acctId, err := toAccountId(req)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (bidder *adaptedAdapter) toLegacyRequest(req *adcert.BidRequest) (*pbs.PBSR
 	}, nil
 }
 
-func toAccountId(req *adcert.BidRequest) (string, error) {
+func toAccountId(req *adscert.BidRequest) (string, error) {
 	if req.Site != nil && req.Site.Publisher != nil {
 		return req.Site.Publisher.ID, nil
 	}
@@ -148,14 +148,14 @@ func toAccountId(req *adcert.BidRequest) (string, error) {
 	return "", errors.New("bidrequest.site.publisher.id or bidrequest.app.publisher.id required for legacy bidders.")
 }
 
-func toTransactionId(req *adcert.BidRequest) (string, error) {
+func toTransactionId(req *adscert.BidRequest) (string, error) {
 	if req.Source != nil {
 		return req.Source.TID, nil
 	}
 	return "", errors.New("bidrequest.source.tid required for legacy bidders.")
 }
 
-func toSecure(req *adcert.BidRequest) (secure int8, err error) {
+func toSecure(req *adscert.BidRequest) (secure int8, err error) {
 	secure = -1
 	for _, imp := range req.Imp {
 		if imp.Secure != nil {
@@ -182,7 +182,7 @@ func toSecure(req *adcert.BidRequest) (secure int8, err error) {
 	return
 }
 
-func toLegacyBidder(req *adcert.BidRequest, name openrtb_ext.BidderName) (*pbs.PBSBidder, []error) {
+func toLegacyBidder(req *adscert.BidRequest, name openrtb_ext.BidderName) (*pbs.PBSBidder, []error) {
 	adUnits, errs := toPBSAdUnits(req)
 	if len(adUnits) > 0 {
 		return &pbs.PBSBidder{
@@ -203,7 +203,7 @@ func toLegacyBidder(req *adcert.BidRequest, name openrtb_ext.BidderName) (*pbs.P
 	}
 }
 
-func toPBSAdUnits(req *adcert.BidRequest) ([]pbs.PBSAdUnit, []error) {
+func toPBSAdUnits(req *adscert.BidRequest) ([]pbs.PBSAdUnit, []error) {
 	adUnits := make([]pbs.PBSAdUnit, len(req.Imp))
 	var errs []error = nil
 	nextAdUnit := 0

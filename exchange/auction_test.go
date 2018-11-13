@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/prebid/prebid-server/adcert"
-
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/prebid_cache_client"
@@ -98,7 +97,7 @@ func runCacheSpec(t *testing.T, fileDisplayName string, specData *cacheSpec) {
 	testAuction := &auction{
 		winningBidsByBidder: winningBidsByBidder,
 	}
-	_ = testAuction.doCache(ctx, cache, true, false, &adcert.BidRequest{BidRequest: &specData.BidRequest}, 60, &specData.DefaultTTLs)
+	_ = testAuction.doCache(ctx, cache, true, false, &adscert.BidRequest{BidRequest: &specData.BidRequest}, 60, &specData.DefaultTTLs)
 	found := 0
 
 	for _, cExpected := range specData.ExpectedCacheables {

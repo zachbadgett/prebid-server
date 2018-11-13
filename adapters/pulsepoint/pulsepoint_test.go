@@ -14,7 +14,7 @@ import (
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -249,7 +249,7 @@ func SampleRequest(numberOfImpressions int, t *testing.T) *pbs.PBSRequest {
  */
 func CreateService(tagsToBid map[string]bool) adapterstest.OrtbMockService {
 	service := adapterstest.OrtbMockService{}
-	var lastBidRequest adcert.BidRequest
+	var lastBidRequest adscert.BidRequest
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
@@ -257,7 +257,7 @@ func CreateService(tagsToBid map[string]bool) adapterstest.OrtbMockService {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		var breq adcert.BidRequest
+		var breq adscert.BidRequest
 		err = json.Unmarshal(body, &breq)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

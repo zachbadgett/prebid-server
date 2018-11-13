@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/yudai/gojsondiff"
@@ -98,7 +98,7 @@ func loadFile(filename string) (*testSpec, error) {
 //
 // More assertions will almost certainly be added in the future, as bugs come up.
 func runSpec(t *testing.T, filename string, spec *testSpec, bidder adapters.Bidder) {
-	req := &adcert.BidRequest{BidRequest: &spec.BidRequest}
+	req := &adscert.BidRequest{BidRequest: &spec.BidRequest}
 	actualReqs, errs := bidder.MakeRequests(req)
 	diffErrorLists(t, fmt.Sprintf("%s: MakeRequests", filename), errs, spec.MakeRequestErrors)
 	diffHttpRequestLists(t, filename, actualReqs, spec.HttpCalls)

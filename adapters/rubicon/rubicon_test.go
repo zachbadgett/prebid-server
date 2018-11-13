@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/prebid/prebid-server/adapters/adapterstest"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -72,7 +72,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var breq adcert.BidRequest
+	var breq adscert.BidRequest
 	err = json.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -985,7 +985,7 @@ func TestOpenRTBRequest(t *testing.T) {
 		devicePxRatio: 4.0,
 	}
 
-	request := &adcert.BidRequest{
+	request := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			ID: "test-request-id",
 			Imp: []openrtb.Imp{{
@@ -1057,7 +1057,7 @@ func TestOpenRTBRequest(t *testing.T) {
 			t.Errorf("Expected a POST message. Got %s", httpReq.Method)
 		}
 
-		var rpRequest adcert.BidRequest
+		var rpRequest adscert.BidRequest
 		if err := json.Unmarshal(httpReq.Body, &rpRequest); err != nil {
 			t.Fatalf("Failed to unmarshal HTTP request: %v", rpRequest)
 		}
@@ -1156,7 +1156,7 @@ func TestOpenRTBSurpriseResponse(t *testing.T) {
 }
 
 func TestOpenRTBStandardResponse(t *testing.T) {
-	request := &adcert.BidRequest{
+	request := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			ID: "test-request-id",
 			Imp: []openrtb.Imp{{

@@ -7,7 +7,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -27,7 +27,7 @@ type openxReqExt struct {
 	BidderConfig string `json:"bc"`
 }
 
-func (a *OpenxAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *OpenxAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	var errs []error
 	var bannerImps []openrtb.Imp
 	var videoImps []openrtb.Imp
@@ -145,7 +145,7 @@ func preprocess(imp *openrtb.Imp, reqExt *openxReqExt) error {
 	return nil
 }
 
-func (a *OpenxAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *OpenxAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

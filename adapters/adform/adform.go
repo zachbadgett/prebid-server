@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
@@ -369,7 +369,7 @@ func NewAdformBidder(client *http.Client, endpointURL string) *AdformAdapter {
 	}
 }
 
-func (a *AdformAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *AdformAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	adformRequest, errors := openRtbToAdformRequest(request)
 	if len(adformRequest.adUnits) == 0 {
 		return nil, errors
@@ -387,7 +387,7 @@ func (a *AdformAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.Re
 	return requests, errors
 }
 
-func openRtbToAdformRequest(request *adcert.BidRequest) (*adformRequest, []error) {
+func openRtbToAdformRequest(request *adscert.BidRequest) (*adformRequest, []error) {
 	adUnits := make([]*adformAdUnit, 0, len(request.Imp))
 	errors := make([]error, 0, len(request.Imp))
 	secure := false
@@ -517,7 +517,7 @@ func getBuyerUIDSafely(user *openrtb.User) string {
 	return user.BuyerUID
 }
 
-func (a *AdformAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *AdformAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}
@@ -544,7 +544,7 @@ func (a *AdformAdapter) MakeBids(internalRequest *adcert.BidRequest, externalReq
 	return bidResponse, nil
 }
 
-func toOpenRtbBidResponse(adformBids []*adformBid, r *adcert.BidRequest) *adapters.BidderResponse {
+func toOpenRtbBidResponse(adformBids []*adformBid, r *adscert.BidRequest) *adapters.BidderResponse {
 	bidResponse := adapters.NewBidderResponseWithBidsCapacity(len(adformBids))
 
 	for i, bid := range adformBids {

@@ -14,7 +14,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/pbs"
@@ -301,7 +301,7 @@ func (a *PubmaticAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 	return bids, nil
 }
 
-func (a *PubmaticAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *PubmaticAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	errs := make([]error, 0, len(request.Imp))
 
 	var err error
@@ -480,7 +480,7 @@ func prepareImpressionExt(keywords map[string]string) string {
 	return kvStr
 }
 
-func (a *PubmaticAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *PubmaticAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil
 	}

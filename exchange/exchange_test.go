@@ -13,9 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/prebid_cache_client"
 
 	"github.com/buger/jsonparser"
@@ -93,8 +92,8 @@ func TestRaceIntegration(t *testing.T) {
 
 // newRaceCheckingRequest builds a BidRequest from all the params in the
 // adapters/{bidder}/{bidder}test/params/race/*.json files
-func newRaceCheckingRequest(t *testing.T) *adcert.BidRequest {
-	return &adcert.BidRequest{
+func newRaceCheckingRequest(t *testing.T) *adscert.BidRequest {
+	return &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			Site: &openrtb.Site{
 				Page:   "www.some.domain.com",
@@ -149,7 +148,7 @@ func newRaceCheckingRequest(t *testing.T) *adcert.BidRequest {
 
 func TestPanicRecovery(t *testing.T) {
 	chBids := make(chan *bidResponseWrapper, 1)
-	panicker := func(aName openrtb_ext.BidderName, coreBidder openrtb_ext.BidderName, request *adcert.BidRequest, bidlabels *pbsmetrics.AdapterLabels) {
+	panicker := func(aName openrtb_ext.BidderName, coreBidder openrtb_ext.BidderName, request *adscert.BidRequest, bidlabels *pbsmetrics.AdapterLabels) {
 		panic("panic!")
 	}
 	recovered := recoverSafely(panicker, chBids)
@@ -200,7 +199,7 @@ func TestPanicRecoveryHighLevel(t *testing.T) {
 	e.adapterMap[openrtb_ext.BidderBeachfront] = panicingAdapter{}
 	e.adapterMap[openrtb_ext.BidderAppnexus] = panicingAdapter{}
 
-	request := &adcert.BidRequest{
+	request := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			Site: &openrtb.Site{
 				Page:   "www.some.domain.com",
@@ -286,7 +285,7 @@ func loadFile(filename string) (*exchangeSpec, error) {
 }
 
 func runSpec(t *testing.T, filename string, spec *exchangeSpec) {
-	incoming := &adcert.BidRequest{BidRequest: &spec.IncomingRequest.OrtbRequest}
+	incoming := &adscert.BidRequest{BidRequest: &spec.IncomingRequest.OrtbRequest}
 	aliases, errs := parseAliases(incoming)
 	if len(errs) != 0 {
 		t.Fatalf("%s: Failed to parse aliases", filename)
@@ -314,7 +313,7 @@ func runSpec(t *testing.T, filename string, spec *exchangeSpec) {
 	}
 }
 
-func findBiddersInAuction(t *testing.T, context string, req *adcert.BidRequest) []string {
+func findBiddersInAuction(t *testing.T, context string, req *adscert.BidRequest) []string {
 	if splitImps, err := splitImps(req.Imp); err != nil {
 		t.Errorf("%s: Failed to parse Bidders from request: %v", context, err)
 		return nil
@@ -453,7 +452,7 @@ type validatingBidder struct {
 	mockResponses map[string]bidderResponse
 }
 
-func (b *validatingBidder) requestBid(ctx context.Context, request *adcert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (seatBid *pbsOrtbSeatBid, errs []error) {
+func (b *validatingBidder) requestBid(ctx context.Context, request *adscert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (seatBid *pbsOrtbSeatBid, errs []error) {
 	if expectedRequest, ok := b.expectations[string(name)]; ok {
 		if expectedRequest != nil {
 			if expectedRequest.BidAdjustment != bidAdjustment {
@@ -491,7 +490,7 @@ func (b *validatingBidder) requestBid(ctx context.Context, request *adcert.BidRe
 	return
 }
 
-func diffOrtbRequests(t *testing.T, description string, expected *adcert.BidRequest, actual *adcert.BidRequest) {
+func diffOrtbRequests(t *testing.T, description string, expected *adscert.BidRequest, actual *adscert.BidRequest) {
 	t.Helper()
 	actualJSON, err := json.Marshal(actual)
 	if err != nil {
@@ -606,6 +605,6 @@ func (e *mockUsersync) GetId(bidder openrtb_ext.BidderName) (id string, exists b
 
 type panicingAdapter struct{}
 
-func (panicingAdapter) requestBid(ctx context.Context, request *adcert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (posb *pbsOrtbSeatBid, errs []error) {
+func (panicingAdapter) requestBid(ctx context.Context, request *adscert.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64) (posb *pbsOrtbSeatBid, errs []error) {
 	panic("Panic! Panic! The world is ending!")
 }

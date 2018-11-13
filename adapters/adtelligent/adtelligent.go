@@ -7,7 +7,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -20,7 +20,7 @@ type adtelligentImpExt struct {
 	Adtelligent openrtb_ext.ExtImpAdtelligent `json:"adtelligent"`
 }
 
-func (a *AdtelligentAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *AdtelligentAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 
 	totalImps := len(request.Imp)
 	errors := make([]error, 0, totalImps)
@@ -86,7 +86,7 @@ func (a *AdtelligentAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapte
 
 }
 
-func (a *AdtelligentAdapter) MakeBids(bidReq *adcert.BidRequest, unused *adapters.RequestData, httpRes *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *AdtelligentAdapter) MakeBids(bidReq *adscert.BidRequest, unused *adapters.RequestData, httpRes *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 
 	if httpRes.StatusCode == http.StatusNoContent {
 		return nil, nil

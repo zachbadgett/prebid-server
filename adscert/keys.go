@@ -1,4 +1,4 @@
-package adcert
+package adscert
 
 var private = `-----BEGIN EC PARAMETERS-----
 BggqhkjOPQMBBw==

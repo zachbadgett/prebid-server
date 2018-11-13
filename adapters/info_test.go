@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -23,7 +23,7 @@ func TestAppNotSupported(t *testing.T) {
 		},
 	}
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	bids, errs := constrained.MakeRequests(&adcert.BidRequest{
+	bids, errs := constrained.MakeRequests(&adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			App: &openrtb.App{},
 		},
@@ -46,7 +46,7 @@ func TestSiteNotSupported(t *testing.T) {
 		},
 	}
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	bids, errs := constrained.MakeRequests(&adcert.BidRequest{
+	bids, errs := constrained.MakeRequests(&adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			Site: &openrtb.Site{},
 		},
@@ -73,7 +73,7 @@ func TestImpFiltering(t *testing.T) {
 	}
 
 	constrained := adapters.EnforceBidderInfo(bidder, info)
-	_, errs := constrained.MakeRequests(&adcert.BidRequest{
+	_, errs := constrained.MakeRequests(&adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			Imp: []openrtb.Imp{
 				{
@@ -120,15 +120,15 @@ func TestImpFiltering(t *testing.T) {
 }
 
 type mockBidder struct {
-	gotRequest *adcert.BidRequest
+	gotRequest *adscert.BidRequest
 }
 
-func (m *mockBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (m *mockBidder) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	m.gotRequest = request
 	return nil, []error{errors.New("mock MakeRequests error")}
 }
 
-func (m *mockBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (m *mockBidder) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	return nil, []error{errors.New("mock MakeBids error")}
 }
 

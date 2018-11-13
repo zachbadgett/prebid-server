@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/prebid/prebid-server/adapters/adapterstest"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -298,7 +298,7 @@ func TestOpenRTBRequest(t *testing.T) {
 
 func TestOpenRTBIncorrectRequest(t *testing.T) {
 	bidder := new(AdformAdapter)
-	request := &adcert.BidRequest{
+	request := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			ID: "test-request-id",
 			Imp: []openrtb.Imp{
@@ -340,13 +340,13 @@ func createTestData() *aBidInfo {
 	return testData
 }
 
-func createOpenRtbRequest(testData *aBidInfo) *adcert.BidRequest {
+func createOpenRtbRequest(testData *aBidInfo) *adscert.BidRequest {
 	secure := int8(0)
 	if testData.secure {
 		secure = int8(1)
 	}
 
-	bidRequest := &adcert.BidRequest{
+	bidRequest := &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			ID:  "test-request-id",
 			Imp: make([]openrtb.Imp, len(testData.tags)),

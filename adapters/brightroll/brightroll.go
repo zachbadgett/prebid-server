@@ -8,7 +8,7 @@ import (
 
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/adcert"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -17,7 +17,7 @@ type BrightrollAdapter struct {
 	URI string
 }
 
-func (a *BrightrollAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (a *BrightrollAdapter) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 
 	errs := make([]error, 0, len(request.Imp))
 	if len(request.Imp) == 0 {
@@ -110,7 +110,7 @@ func (a *BrightrollAdapter) MakeRequests(request *adcert.BidRequest) ([]*adapter
 	}}, errors
 }
 
-func (a *BrightrollAdapter) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (a *BrightrollAdapter) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 
 	if response.StatusCode == http.StatusNoContent {
 		return nil, nil

@@ -12,12 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/buger/jsonparser"
 	"github.com/golang/glog"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/analytics"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/exchange"
@@ -213,7 +212,7 @@ func (deps *endpointDeps) AmpAuction(w http.ResponseWriter, r *http.Request, _ h
 // possible, it will return errors with messages that suggest improvements.
 //
 // If the errors list has at least one element, then no guarantees are made about the returned request.
-func (deps *endpointDeps) parseAmpRequest(httpRequest *http.Request) (req *adcert.BidRequest, errs []error) {
+func (deps *endpointDeps) parseAmpRequest(httpRequest *http.Request) (req *adscert.BidRequest, errs []error) {
 	// Load the stored request for the AMP ID.
 	req, errs = deps.loadRequestJSONForAmp(httpRequest)
 	if len(errs) > 0 {
@@ -240,8 +239,8 @@ func (deps *endpointDeps) parseAmpRequest(httpRequest *http.Request) (req *adcer
 }
 
 // Load the stored OpenRTB request for an incoming AMP request, or return the errors found.
-func (deps *endpointDeps) loadRequestJSONForAmp(httpRequest *http.Request) (req *adcert.BidRequest, errs []error) {
-	req = &adcert.BidRequest{}
+func (deps *endpointDeps) loadRequestJSONForAmp(httpRequest *http.Request) (req *adscert.BidRequest, errs []error) {
+	req = &adscert.BidRequest{}
 	errs = nil
 
 	ampID := httpRequest.FormValue("tag_id")
@@ -304,7 +303,7 @@ func (deps *endpointDeps) loadRequestJSONForAmp(httpRequest *http.Request) (req 
 	return
 }
 
-func (deps *endpointDeps) overrideWithParams(httpRequest *http.Request, req *adcert.BidRequest) {
+func (deps *endpointDeps) overrideWithParams(httpRequest *http.Request, req *adscert.BidRequest) {
 	if req.Site == nil {
 		req.Site = &openrtb.Site{}
 	}
@@ -426,7 +425,7 @@ func parseIntErrorless(value string, defaultTo uint64) uint64 {
 
 // AMP won't function unless ext.prebid.targeting and ext.prebid.cache.bids are defined.
 // If the user didn't include them, default those here.
-func defaultRequestExt(req *adcert.BidRequest) (errs []error) {
+func defaultRequestExt(req *adscert.BidRequest) (errs []error) {
 	errs = nil
 	extRequest := &openrtb_ext.ExtRequest{}
 	if req.Ext != nil && len(req.Ext) > 0 {

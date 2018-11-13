@@ -8,10 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/adscert"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
 
@@ -58,7 +57,7 @@ func TestSingleBidder(t *testing.T) {
 		bidResponse: mockBidderResponse,
 	}
 	bidder := adaptBidder(bidderImpl, server.Client())
-	seatBid, errs := bidder.requestBid(context.Background(), &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", bidAdjustment)
+	seatBid, errs := bidder.requestBid(context.Background(), &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", bidAdjustment)
 
 	// Make sure the goodSingleBidder was called with the expected arguments.
 	if bidderImpl.httpResponse == nil {
@@ -142,7 +141,7 @@ func TestMultiBidder(t *testing.T) {
 		bidResponse: mockBidderResponse,
 	}
 	bidder := adaptBidder(bidderImpl, server.Client())
-	seatBid, errs := bidder.requestBid(context.Background(), &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", 1.0)
+	seatBid, errs := bidder.requestBid(context.Background(), &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", 1.0)
 
 	if seatBid == nil {
 		t.Fatalf("SeatBid should exist, because bids exist.")
@@ -341,7 +340,7 @@ func TestMultiCurrencies(t *testing.T) {
 		bidder := adaptBidder(bidderImpl, server.Client())
 		seatBid, errs := bidder.requestBid(
 			context.Background(),
-			&adcert.BidRequest{BidRequest: &openrtb.BidRequest{}},
+			&adscert.BidRequest{BidRequest: &openrtb.BidRequest{}},
 			"test",
 			1,
 		)
@@ -450,7 +449,7 @@ func TestServerCallDebugging(t *testing.T) {
 	}
 	bidder := adaptBidder(bidderImpl, server.Client())
 
-	bids, _ := bidder.requestBid(context.Background(), &adcert.BidRequest{
+	bids, _ := bidder.requestBid(context.Background(), &adscert.BidRequest{
 		BidRequest: &openrtb.BidRequest{
 			Test: 1,
 		},
@@ -475,7 +474,7 @@ func TestServerCallDebugging(t *testing.T) {
 
 func TestErrorReporting(t *testing.T) {
 	bidder := adaptBidder(&bidRejector{}, nil)
-	bids, errs := bidder.requestBid(context.Background(), &adcert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", 1.0)
+	bids, errs := bidder.requestBid(context.Background(), &adscert.BidRequest{BidRequest: &openrtb.BidRequest{}}, "test", 1.0)
 	if bids != nil {
 		t.Errorf("There should be no seatbid if no http requests are returned.")
 	}
@@ -488,31 +487,31 @@ func TestErrorReporting(t *testing.T) {
 }
 
 type goodSingleBidder struct {
-	bidRequest   *adcert.BidRequest
+	bidRequest   *adscert.BidRequest
 	httpRequest  *adapters.RequestData
 	httpResponse *adapters.ResponseData
 	bidResponse  *adapters.BidderResponse
 }
 
-func (bidder *goodSingleBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (bidder *goodSingleBidder) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	bidder.bidRequest = request
 	return []*adapters.RequestData{bidder.httpRequest}, nil
 }
 
-func (bidder *goodSingleBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (bidder *goodSingleBidder) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	bidder.httpResponse = response
 	return bidder.bidResponse, nil
 }
 
 type goodMultiHTTPCallsBidder struct {
-	bidRequest        *adcert.BidRequest
+	bidRequest        *adscert.BidRequest
 	httpRequest       []*adapters.RequestData
 	httpResponses     []*adapters.ResponseData
 	bidResponses      []*adapters.BidderResponse
 	bidResponseNumber int
 }
 
-func (bidder *goodMultiHTTPCallsBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (bidder *goodMultiHTTPCallsBidder) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	bidder.bidRequest = request
 	response := make([]*adapters.RequestData, len(bidder.httpRequest))
 
@@ -522,7 +521,7 @@ func (bidder *goodMultiHTTPCallsBidder) MakeRequests(request *adcert.BidRequest)
 	return response, nil
 }
 
-func (bidder *goodMultiHTTPCallsBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (bidder *goodMultiHTTPCallsBidder) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	br := bidder.bidResponses[bidder.bidResponseNumber]
 	bidder.bidResponseNumber++
 	bidder.httpResponses = append(bidder.httpResponses, response)
@@ -531,18 +530,18 @@ func (bidder *goodMultiHTTPCallsBidder) MakeBids(internalRequest *adcert.BidRequ
 }
 
 type mixedMultiBidder struct {
-	bidRequest    *adcert.BidRequest
+	bidRequest    *adscert.BidRequest
 	httpRequests  []*adapters.RequestData
 	httpResponses []*adapters.ResponseData
 	bidResponse   *adapters.BidderResponse
 }
 
-func (bidder *mixedMultiBidder) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (bidder *mixedMultiBidder) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	bidder.bidRequest = request
 	return bidder.httpRequests, []error{errors.New("The requests weren't ideal.")}
 }
 
-func (bidder *mixedMultiBidder) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (bidder *mixedMultiBidder) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	bidder.httpResponses = append(bidder.httpResponses, response)
 	return bidder.bidResponse, []error{errors.New("The bidResponse weren't ideal.")}
 }
@@ -552,11 +551,11 @@ type bidRejector struct {
 	httpResponse *adapters.ResponseData
 }
 
-func (bidder *bidRejector) MakeRequests(request *adcert.BidRequest) ([]*adapters.RequestData, []error) {
+func (bidder *bidRejector) MakeRequests(request *adscert.BidRequest) ([]*adapters.RequestData, []error) {
 	return nil, []error{errors.New("Invalid params on BidRequest.")}
 }
 
-func (bidder *bidRejector) MakeBids(internalRequest *adcert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
+func (bidder *bidRejector) MakeBids(internalRequest *adscert.BidRequest, externalRequest *adapters.RequestData, response *adapters.ResponseData) (*adapters.BidderResponse, []error) {
 	bidder.httpResponse = response
 	return nil, []error{errors.New("Can't make a response.")}
 }

@@ -3,9 +3,8 @@ package exchange
 import (
 	"testing"
 
-	"github.com/prebid/prebid-server/adcert"
-
 	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adscert"
 )
 
 func TestAllValidBids(t *testing.T) {
@@ -42,7 +41,7 @@ func TestAllValidBids(t *testing.T) {
 			bids: bids,
 		},
 	}
-	assertBids(t, &adcert.BidRequest{BidRequest: brq}, brw, 3, 0)
+	assertBids(t, &adscert.BidRequest{BidRequest: brq}, brw, 3, 0)
 }
 
 func TestAllBadBids(t *testing.T) {
@@ -83,7 +82,7 @@ func TestAllBadBids(t *testing.T) {
 			bids: bids,
 		},
 	}
-	assertBids(t, &adcert.BidRequest{BidRequest: brq}, brw, 0, 5)
+	assertBids(t, &adscert.BidRequest{BidRequest: brq}, brw, 0, 5)
 }
 
 func TestMixeddBids(t *testing.T) {
@@ -126,7 +125,7 @@ func TestMixeddBids(t *testing.T) {
 			bids: bids,
 		},
 	}
-	assertBids(t, &adcert.BidRequest{BidRequest: brq}, brw, 2, 3)
+	assertBids(t, &adscert.BidRequest{BidRequest: brq}, brw, 2, 3)
 }
 
 func TestCurrencyBids(t *testing.T) {
@@ -245,11 +244,11 @@ func TestCurrencyBids(t *testing.T) {
 			expectedValidBids = 0
 		}
 
-		assertBids(t, &adcert.BidRequest{BidRequest: brq}, brw, expectedValidBids, expectedErrs)
+		assertBids(t, &adscert.BidRequest{BidRequest: brq}, brw, expectedValidBids, expectedErrs)
 	}
 }
 
-func assertBids(t *testing.T, brq *adcert.BidRequest, brw *bidResponseWrapper, ebids int, eerrs int) {
+func assertBids(t *testing.T, brq *adscert.BidRequest, brw *bidResponseWrapper, ebids int, eerrs int) {
 	errs := brw.validateBids(brq)
 	if len(errs) != eerrs {
 		t.Errorf("Expected %d Errors validating bids, found %d", eerrs, len(errs))

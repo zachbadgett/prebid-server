@@ -11,19 +11,19 @@ import (
 )
 
 func TestAllValidBids(t *testing.T) {
-	var bidder adaptedBidder = ensureValidBids(&mockAdaptedBidder{
-		bidResponse: &pbsOrtbSeatBid{
-			bids: []*pbsOrtbBid{
+	var bidder AdaptedBidder = ensureValidBids(&mockAdaptedBidder{
+		bidResponse: &PBSOrtbSeatBid{
+			Bids: []*PBSOrtbBid{
 				{
-					bid: &openrtb.Bid{
-						ID:    "one-bid",
+					Bid: &openrtb.Bid{
+						ID:    "one-Bid",
 						ImpID: "thisImp",
 						Price: 0.45,
 						CrID:  "thisCreative",
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "thatBid",
 						ImpID: "thatImp",
 						Price: 0.40,
@@ -31,7 +31,7 @@ func TestAllValidBids(t *testing.T) {
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "123",
 						ImpID: "456",
 						Price: 0.44,
@@ -41,38 +41,38 @@ func TestAllValidBids(t *testing.T) {
 			},
 		},
 	})
-	seatBid, errs := bidder.requestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
-	assert.Len(t, seatBid.bids, 3)
+	seatBid, errs := bidder.RequestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
+	assert.Len(t, seatBid.Bids, 3)
 	assert.Len(t, errs, 0)
 }
 
 func TestAllBadBids(t *testing.T) {
 	bidder := ensureValidBids(&mockAdaptedBidder{
-		bidResponse: &pbsOrtbSeatBid{
-			bids: []*pbsOrtbBid{
+		bidResponse: &PBSOrtbSeatBid{
+			Bids: []*PBSOrtbBid{
 				{
-					bid: &openrtb.Bid{
-						ID:    "one-bid",
+					Bid: &openrtb.Bid{
+						ID:    "one-Bid",
 						Price: 0.45,
 						CrID:  "thisCreative",
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "thatBid",
 						ImpID: "thatImp",
 						CrID:  "thatCreative",
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "123",
 						ImpID: "456",
 						Price: 0.44,
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ImpID: "456",
 						Price: 0.44,
 						CrID:  "blah",
@@ -82,32 +82,32 @@ func TestAllBadBids(t *testing.T) {
 			},
 		},
 	})
-	seatBid, errs := bidder.requestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
-	assert.Len(t, seatBid.bids, 0)
+	seatBid, errs := bidder.RequestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
+	assert.Len(t, seatBid.Bids, 0)
 	assert.Len(t, errs, 5)
 }
 
 func TestMixedBids(t *testing.T) {
 	bidder := ensureValidBids(&mockAdaptedBidder{
-		bidResponse: &pbsOrtbSeatBid{
-			bids: []*pbsOrtbBid{
+		bidResponse: &PBSOrtbSeatBid{
+			Bids: []*PBSOrtbBid{
 				{
-					bid: &openrtb.Bid{
-						ID:    "one-bid",
+					Bid: &openrtb.Bid{
+						ID:    "one-Bid",
 						ImpID: "thisImp",
 						Price: 0.45,
 						CrID:  "thisCreative",
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "thatBid",
 						ImpID: "thatImp",
 						CrID:  "thatCreative",
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ID:    "123",
 						ImpID: "456",
 						Price: 0.44,
@@ -115,7 +115,7 @@ func TestMixedBids(t *testing.T) {
 					},
 				},
 				{
-					bid: &openrtb.Bid{
+					Bid: &openrtb.Bid{
 						ImpID: "456",
 						Price: 0.44,
 						CrID:  "blah",
@@ -125,8 +125,8 @@ func TestMixedBids(t *testing.T) {
 			},
 		},
 	})
-	seatBid, errs := bidder.requestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
-	assert.Len(t, seatBid.bids, 2)
+	seatBid, errs := bidder.RequestBid(context.Background(), &openrtb.BidRequest{}, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
+	assert.Len(t, seatBid.Bids, 2)
 	assert.Len(t, errs, 3)
 }
 
@@ -137,67 +137,67 @@ func TestCurrencyBids(t *testing.T) {
 		defaultCur       string
 		expectedValidBid bool
 	}{
-		// Case bid request and bid response don't specify any currencies.
-		// Expected to be valid since both bid request / response will be overridden with default currency (USD).
+		// Case Bid request and Bid response don't specify any currencies.
+		// Expected to be valid since both Bid request / response will be overridden with default Currency (USD).
 		{
 			brqCur:           []string{},
 			brpCur:           "",
 			expectedValidBid: true,
 		},
-		// Case bid request specifies a currency (default one) but bid response doesn't.
-		// Expected to be valid since bid response will be overridden with default currency (USD).
+		// Case Bid request specifies a Currency (default one) but Bid response doesn't.
+		// Expected to be valid since Bid response will be overridden with default Currency (USD).
 		{
 			brqCur:           []string{"USD"},
 			brpCur:           "",
 			expectedValidBid: true,
 		},
-		// Case bid request specifies more than 1 currency (default one and another one) but bid response doesn't.
-		// Expected to be valid since bid response will be overridden with default currency (USD).
+		// Case Bid request specifies more than 1 Currency (default one and another one) but Bid response doesn't.
+		// Expected to be valid since Bid response will be overridden with default Currency (USD).
 		{
 			brqCur:           []string{"USD", "EUR"},
 			brpCur:           "",
 			expectedValidBid: true,
 		},
-		// Case bid request specifies more than 1 currency (default one and another one) and bid response specifies default currency (USD).
+		// Case Bid request specifies more than 1 Currency (default one and another one) and Bid response specifies default Currency (USD).
 		// Expected to be valid.
 		{
 			brqCur:           []string{"USD", "EUR"},
 			brpCur:           "USD",
 			expectedValidBid: true,
 		},
-		// Case bid request specifies more than 1 currency (default one and another one) and bid response specifies the second currency allowed (not USD).
+		// Case Bid request specifies more than 1 Currency (default one and another one) and Bid response specifies the second Currency allowed (not USD).
 		// Expected to be valid.
 		{
 			brqCur:           []string{"USD", "EUR"},
 			brpCur:           "EUR",
 			expectedValidBid: true,
 		},
-		// Case bid request specifies only 1 currency which is not the default one.
-		// Bid response doesn't specify any currency.
+		// Case Bid request specifies only 1 Currency which is not the default one.
+		// Bid response doesn't specify any Currency.
 		// Expected to be invalid.
 		{
 			brqCur:           []string{"JPY"},
 			brpCur:           "",
 			expectedValidBid: false,
 		},
-		// Case bid request doesn't specify any currencies.
-		// Bid response specifies a currency which is not the default one.
+		// Case Bid request doesn't specify any currencies.
+		// Bid response specifies a Currency which is not the default one.
 		// Expected to be invalid.
 		{
 			brqCur:           []string{},
 			brpCur:           "JPY",
 			expectedValidBid: false,
 		},
-		// Case bid request specifies a currency.
-		// Bid response specifies a currency which is not the one specified in bid request.
+		// Case Bid request specifies a Currency.
+		// Bid response specifies a Currency which is not the one specified in Bid request.
 		// Expected to be invalid.
 		{
 			brqCur:           []string{"USD"},
 			brpCur:           "EUR",
 			expectedValidBid: false,
 		},
-		// Case bid request specifies several currencies.
-		// Bid response specifies a currency which is not the one specified in bid request.
+		// Case Bid request specifies several currencies.
+		// Bid response specifies a Currency which is not the one specified in Bid request.
 		// Expected to be invalid.
 		{
 			brqCur:           []string{"USD", "EUR"},
@@ -207,17 +207,17 @@ func TestCurrencyBids(t *testing.T) {
 	}
 
 	for _, tc := range currencyTestCases {
-		bids := []*pbsOrtbBid{
+		bids := []*PBSOrtbBid{
 			{
-				bid: &openrtb.Bid{
-					ID:    "one-bid",
+				Bid: &openrtb.Bid{
+					ID:    "one-Bid",
 					ImpID: "thisImp",
 					Price: 0.45,
 					CrID:  "thisCreative",
 				},
 			},
 			{
-				bid: &openrtb.Bid{
+				Bid: &openrtb.Bid{
 					ID:    "thatBid",
 					ImpID: "thatImp",
 					Price: 0.44,
@@ -226,9 +226,9 @@ func TestCurrencyBids(t *testing.T) {
 			},
 		}
 		bidder := ensureValidBids(&mockAdaptedBidder{
-			bidResponse: &pbsOrtbSeatBid{
-				currency: tc.brpCur,
-				bids:     bids,
+			bidResponse: &PBSOrtbSeatBid{
+				Currency: tc.brpCur,
+				Bids:     bids,
 			},
 		})
 
@@ -236,7 +236,7 @@ func TestCurrencyBids(t *testing.T) {
 		expectedErrs := 0
 
 		if tc.expectedValidBid != true {
-			// If currency mistmatch, we should have one error
+			// If Currency mistmatch, we should have one error
 			expectedErrs = 1
 			expectedValidBids = 0
 		}
@@ -245,17 +245,17 @@ func TestCurrencyBids(t *testing.T) {
 			Cur: tc.brqCur,
 		}
 
-		seatBid, errs := bidder.requestBid(context.Background(), request, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
-		assert.Len(t, seatBid.bids, expectedValidBids)
+		seatBid, errs := bidder.RequestBid(context.Background(), request, openrtb_ext.BidderAppnexus, 1.0, currencies.NewConstantRates())
+		assert.Len(t, seatBid.Bids, expectedValidBids)
 		assert.Len(t, errs, expectedErrs)
 	}
 }
 
 type mockAdaptedBidder struct {
-	bidResponse   *pbsOrtbSeatBid
+	bidResponse   *PBSOrtbSeatBid
 	errorResponse []error
 }
 
-func (b *mockAdaptedBidder) requestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64, conversions currencies.Conversions) (*pbsOrtbSeatBid, []error) {
+func (b *mockAdaptedBidder) RequestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64, conversions currencies.Conversions) (*PBSOrtbSeatBid, []error) {
 	return b.bidResponse, b.errorResponse
 }

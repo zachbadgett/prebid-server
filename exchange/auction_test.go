@@ -95,19 +95,19 @@ func loadCacheSpec(filename string) (*cacheSpec, error) {
 }
 
 func runCacheSpec(t *testing.T, fileDisplayName string, specData *cacheSpec, bids bool, vast bool) {
-	// bid := make([]pbsOrtbBid, 5)
-	var bid *pbsOrtbBid
-	winningBids := make(map[string]*pbsOrtbBid)
-	winningBidsByBidder := make(map[string]map[openrtb_ext.BidderName]*pbsOrtbBid)
-	roundedPrices := make(map[*pbsOrtbBid]string)
+	// Bid := make([]PBSOrtbBid, 5)
+	var bid *PBSOrtbBid
+	winningBids := make(map[string]*PBSOrtbBid)
+	winningBidsByBidder := make(map[string]map[openrtb_ext.BidderName]*PBSOrtbBid)
+	roundedPrices := make(map[*PBSOrtbBid]string)
 	bidCategory := make(map[string]string)
 	for i, pbsBid := range specData.PbsBids {
 		if _, ok := winningBidsByBidder[pbsBid.Bid.ID]; !ok {
-			winningBidsByBidder[pbsBid.Bid.ID] = make(map[openrtb_ext.BidderName]*pbsOrtbBid)
+			winningBidsByBidder[pbsBid.Bid.ID] = make(map[openrtb_ext.BidderName]*PBSOrtbBid)
 		}
-		bid = &pbsOrtbBid{
-			bid:     pbsBid.Bid,
-			bidType: pbsBid.BidType,
+		bid = &PBSOrtbBid{
+			Bid:     pbsBid.Bid,
+			BidType: pbsBid.BidType,
 		}
 		if _, ok := winningBids[pbsBid.Bid.ImpID]; !ok {
 			winningBids[pbsBid.Bid.ImpID] = bid
@@ -116,15 +116,15 @@ func runCacheSpec(t *testing.T, fileDisplayName string, specData *cacheSpec, bid
 		if len(pbsBid.Bid.Cat) == 1 {
 			bidCategory[pbsBid.Bid.ID] = pbsBid.Bid.Cat[0]
 		}
-		roundedPrices[bid] = strconv.FormatFloat(bid.bid.Price, 'f', 2, 64)
-		// Marshal the bid for the expected cacheables
-		cjson, _ := json.Marshal(bid.bid)
+		roundedPrices[bid] = strconv.FormatFloat(bid.Bid.Price, 'f', 2, 64)
+		// Marshal the Bid for the expected cacheables
+		cjson, _ := json.Marshal(bid.Bid)
 		specData.ExpectedCacheables[i].Data = cjson
 	}
 	ctx := context.Background()
 	cache := &mockCache{}
 
-	testAuction := &auction{
+	testAuction := &Auction{
 		winningBids:         winningBids,
 		winningBidsByBidder: winningBidsByBidder,
 		roundedPrices:       roundedPrices,
@@ -183,9 +183,9 @@ type cacheSpec struct {
 }
 
 type pbsBid struct {
-	Bid     *openrtb.Bid           `json:"bid"`
-	BidType openrtb_ext.BidType    `json:"bidType"`
-	Bidder  openrtb_ext.BidderName `json:"bidder"`
+	Bid     *openrtb.Bid           `json:"Bid"`
+	BidType openrtb_ext.BidType    `json:"BidType"`
+	Bidder  openrtb_ext.BidderName `json:"Bidder"`
 }
 
 type mockCache struct {

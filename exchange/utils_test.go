@@ -32,8 +32,8 @@ func (p *permissionsMock) PersonalInfoAllowed(ctx context.Context, bidder openrt
 }
 
 func assertReqWithoutAliases(t *testing.T, reqByBidders map[openrtb_ext.BidderName]*openrtb.BidRequest) {
-	// assert individual bidder requests
-	assert.NotEqual(t, len(reqByBidders), 0, "cleanOpenRTBRequest should split request into individual bidder requests")
+	// assert individual Bidder requests
+	assert.NotEqual(t, len(reqByBidders), 0, "cleanOpenRTBRequest should split request into individual Bidder requests")
 
 	// assert for PI data
 	// Only appnexus should be allowed
@@ -47,8 +47,8 @@ func assertReqWithoutAliases(t *testing.T, reqByBidders map[openrtb_ext.BidderNa
 }
 
 func assertReqWithAliases(t *testing.T, reqByBidders map[openrtb_ext.BidderName]*openrtb.BidRequest) {
-	// assert individual bidder requests
-	assert.NotEqual(t, reqByBidders, 0, "cleanOpenRTBRequest should split request into individual bidder requests")
+	// assert individual Bidder requests
+	assert.NotEqual(t, reqByBidders, 0, "cleanOpenRTBRequest should split request into individual Bidder requests")
 
 	// assert for PI data
 	// Both appnexus and brightroll should be allowed since brightroll
@@ -76,7 +76,7 @@ func TestCleanOpenRTBRequests(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		reqByBidders, _, err := cleanOpenRTBRequests(context.Background(), test.req, &emptyUsersync{}, map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels{}, pbsmetrics.Labels{}, &permissionsMock{}, true)
+		reqByBidders, _, err := CleanOpenRTBRequests(context.Background(), test.req, &emptyUsersync{}, map[openrtb_ext.BidderName]*pbsmetrics.AdapterLabels{}, pbsmetrics.Labels{}, &permissionsMock{}, true)
 		if test.hasError {
 			assert.NotNil(t, err, "Error shouldn't be nil")
 		} else {
@@ -139,14 +139,14 @@ func TestRandomizeList(t *testing.T) {
 	adapters[1] = openrtb_ext.BidderName("dummy2")
 	adapters[2] = openrtb_ext.BidderName("dummy3")
 
-	randomizeList(adapters)
+	RandomizeList(adapters)
 
 	if len(adapters) != 3 {
 		t.Errorf("RandomizeList, expected a list of 3, found %d", len(adapters))
 	}
 
 	adapters = adapters[0:1]
-	randomizeList(adapters)
+	RandomizeList(adapters)
 
 	if len(adapters) != 1 {
 		t.Errorf("RandomizeList, expected a list of 1, found %d", len(adapters))

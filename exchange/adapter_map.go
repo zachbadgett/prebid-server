@@ -39,7 +39,7 @@ import (
 // The newAdapterMap function is segregated to its own file to make it a simple and clean location for each Adapter
 // to register itself. No wading through Exchange code to find it.
 
-func newAdapterMap(client *http.Client, cfg *config.Configuration, infos adapters.BidderInfos) map[openrtb_ext.BidderName]adaptedBidder {
+func newAdapterMap(client *http.Client, cfg *config.Configuration, infos adapters.BidderInfos) map[openrtb_ext.BidderName]AdaptedBidder {
 	ortbBidders := map[openrtb_ext.BidderName]adapters.Bidder{
 		openrtb_ext.BidderAdform:      adform.NewAdformBidder(client, cfg.Adapters[string(openrtb_ext.BidderAdform)].Endpoint),
 		openrtb_ext.BidderAdkernelAdn: adkernelAdn.NewAdkernelAdnAdapter(cfg.Adapters[strings.ToLower(string(openrtb_ext.BidderAdkernelAdn))].Endpoint),
@@ -83,7 +83,7 @@ func newAdapterMap(client *http.Client, cfg *config.Configuration, infos adapter
 		openrtb_ext.BidderPulsepoint: pulsepoint.NewPulsePointAdapter(adapters.DefaultHTTPAdapterConfig, cfg.Adapters[string(openrtb_ext.BidderPulsepoint)].Endpoint),
 	}
 
-	allBidders := make(map[openrtb_ext.BidderName]adaptedBidder, len(ortbBidders)+len(legacyBidders))
+	allBidders := make(map[openrtb_ext.BidderName]AdaptedBidder, len(ortbBidders)+len(legacyBidders))
 
 	// Wrap legacy and openrtb Bidders behind a common interface, so that the Exchange doesn't need to concern
 	// itself with the differences.
@@ -96,7 +96,7 @@ func newAdapterMap(client *http.Client, cfg *config.Configuration, infos adapter
 	for name, bidder := range ortbBidders {
 		// Clean out any disabled bidders
 		if isEnabledBidder(cfg.Adapters, string(name)) {
-			allBidders[name] = adaptBidder(adapters.EnforceBidderInfo(bidder, infos[string(name)]), client)
+			allBidders[name] = AdaptBidder(adapters.EnforceBidderInfo(bidder, infos[string(name)]), client)
 		}
 	}
 
@@ -108,7 +108,7 @@ func newAdapterMap(client *http.Client, cfg *config.Configuration, infos adapter
 	return allBidders
 }
 
-// isEnabledBidder Checks that a bidder config exists and is not disabled
+// isEnabledBidder Checks that a Bidder config exists and is not disabled
 func isEnabledBidder(cfg map[string]config.Adapter, bidder string) bool {
 	a, ok := cfg[strings.ToLower(bidder)]
 	return ok && !a.Disabled
@@ -123,9 +123,9 @@ func DisableBidders(cfg map[string]config.Adapter, origBidderList []openrtb_ext.
 	// Set up error messages for disabled bidders
 	for a := range openrtb_ext.BidderMap {
 		if !isEnabledBidder(cfg, a) {
-			disabledBidders[a] = fmt.Sprintf("Bidder \"%s\" has been disabled on this instance of Prebid Server. Please work with the PBS host to enable this bidder again.", a)
+			disabledBidders[a] = fmt.Sprintf("Bidder \"%s\" has been disabled on this instance of Prebid Server. Please work with the PBS host to enable this Bidder again.", a)
 			delete(bidderMap, a)
-			// remove this bidder from the bidderList
+			// remove this Bidder from the bidderList
 			// This could break if an adapter appears on the bidderList more than once, but in that case something else is very broken.
 			for i, b := range bidderList {
 				if string(b) == a {

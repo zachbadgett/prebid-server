@@ -14,12 +14,12 @@ import (
 	"github.com/prebid/prebid-server/usersync"
 )
 
-// AdaptLegacyAdapter turns a bidder.Adapter into an adaptedBidder.
+// AdaptLegacyAdapter turns a Bidder.Adapter into an AdaptedBidder.
 //
 // This is a temporary function which helps make the transition to OpenRTB smooth. Bidders which have not been
-// updated yet can use this to be "OpenRTB-ish". They'll bid as well as they can, given the limitations of the
+// updated yet can use this to be "OpenRTB-ish". They'll Bid as well as they can, given the limitations of the
 // legacy protocol
-func adaptLegacyAdapter(adapter adapters.Adapter) adaptedBidder {
+func adaptLegacyAdapter(adapter adapters.Adapter) AdaptedBidder {
 	return &adaptedAdapter{
 		adapter: adapter,
 	}
@@ -29,11 +29,11 @@ type adaptedAdapter struct {
 	adapter adapters.Adapter
 }
 
-// requestBid attempts to bid on OpenRTB requests using the legacy protocol.
+// RequestBid attempts to Bid on OpenRTB requests using the legacy protocol.
 //
 // This is not ideal. OpenRTB provides a superset of the legacy data structures.
-// For requests which use those features, the best we can do is respond with "no bid".
-func (bidder *adaptedAdapter) requestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64, conversions currencies.Conversions) (*pbsOrtbSeatBid, []error) {
+// For requests which use those features, the best we can do is respond with "no Bid".
+func (bidder *adaptedAdapter) RequestBid(ctx context.Context, request *openrtb.BidRequest, name openrtb_ext.BidderName, bidAdjustment float64, conversions currencies.Conversions) (*PBSOrtbSeatBid, []error) {
 	legacyRequest, legacyBidder, errs := bidder.toLegacyAdapterInputs(request, name)
 	if legacyRequest == nil || legacyBidder == nil {
 		return nil, errs
@@ -254,7 +254,7 @@ func initPBSAdUnit(imp *openrtb.Imp, adUnit *pbs.PBSAdUnit) error {
 		sizes = append(sizes, imp.Banner.Format...)
 	}
 
-	params, _, _, err := jsonparser.Get(imp.Ext, "bidder")
+	params, _, _, err := jsonparser.Get(imp.Ext, "Bidder")
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func initPBSAdUnit(imp *openrtb.Imp, adUnit *pbs.PBSAdUnit) error {
 		mediaTypes = append(mediaTypes, pbs.MEDIA_TYPE_VIDEO)
 	}
 	if len(mediaTypes) == 0 {
-		return errors.New("legacy bidders can only bid on banner and video ad units")
+		return errors.New("legacy bidders can only Bid on banner and video ad units")
 	}
 
 	adUnit.Sizes = sizes
@@ -286,16 +286,16 @@ func initPBSAdUnit(imp *openrtb.Imp, adUnit *pbs.PBSAdUnit) error {
 // Response transformations.
 
 // toNewResponse is a best-effort transformation of legacy Bids into an OpenRTB response.
-func toNewResponse(bids pbs.PBSBidSlice, bidder *pbs.PBSBidder, name openrtb_ext.BidderName) (*pbsOrtbSeatBid, []error) {
+func toNewResponse(bids pbs.PBSBidSlice, bidder *pbs.PBSBidder, name openrtb_ext.BidderName) (*PBSOrtbSeatBid, []error) {
 	newBids, errs := transformBids(bids, name)
-	return &pbsOrtbSeatBid{
-		bids:      newBids,
-		httpCalls: transformDebugs(bidder.Debug),
+	return &PBSOrtbSeatBid{
+		Bids:      newBids,
+		HTTPCalls: transformDebugs(bidder.Debug),
 	}, errs
 }
 
-func transformBids(legacyBids pbs.PBSBidSlice, name openrtb_ext.BidderName) ([]*pbsOrtbBid, []error) {
-	newBids := make([]*pbsOrtbBid, 0, len(legacyBids))
+func transformBids(legacyBids pbs.PBSBidSlice, name openrtb_ext.BidderName) ([]*PBSOrtbBid, []error) {
+	newBids := make([]*PBSOrtbBid, 0, len(legacyBids))
 	var errs []error = nil
 	for _, legacyBid := range legacyBids {
 		if legacyBid != nil {
@@ -310,7 +310,7 @@ func transformBids(legacyBids pbs.PBSBidSlice, name openrtb_ext.BidderName) ([]*
 	return newBids, errs
 }
 
-func transformBid(legacyBid *pbs.PBSBid, name openrtb_ext.BidderName) (*pbsOrtbBid, error) {
+func transformBid(legacyBid *pbs.PBSBid, name openrtb_ext.BidderName) (*PBSOrtbBid, error) {
 	newBid := transformBidToOrtb(legacyBid)
 
 	newBidType, err := openrtb_ext.ParseBidType(legacyBid.CreativeMediaType)
@@ -318,9 +318,9 @@ func transformBid(legacyBid *pbs.PBSBid, name openrtb_ext.BidderName) (*pbsOrtbB
 		return nil, err
 	}
 
-	return &pbsOrtbBid{
-		bid:     newBid,
-		bidType: newBidType,
+	return &PBSOrtbBid{
+		Bid:     newBid,
+		BidType: newBidType,
 	}, nil
 }
 
@@ -330,7 +330,7 @@ func transformBidToOrtb(legacyBid *pbs.PBSBid) *openrtb.Bid {
 		ImpID: legacyBid.AdUnitCode,
 		CrID:  legacyBid.Creative_id,
 		// legacyBid.CreativeMediaType is handled by transformBid(), because it doesn't exist on the openrtb.Bid
-		// legacyBid.BidderCode is handled by the exchange, which already knows which bidder we are.
+		// legacyBid.BidderCode is handled by the exchange, which already knows which Bidder we are.
 		// legacyBid.BidHash is ignored, because it doesn't get sent in the response anyway
 		Price:  legacyBid.Price,
 		NURL:   legacyBid.NURL,

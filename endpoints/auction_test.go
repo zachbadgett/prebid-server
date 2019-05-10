@@ -67,7 +67,7 @@ func TestSortBidsAndAddKeywordsForMobile(t *testing.T) {
 	   "account_id":"aecd6ef7-b992-4e99-9bb8-65e2d984e1dd"
 	}
     `)
-	r := httptest.NewRequest("POST", "/auction", bytes.NewBuffer(body))
+	r := httptest.NewRequest("POST", "/NewAuction", bytes.NewBuffer(body))
 	d, _ := dummycache.New()
 	hcc := config.HostCookie{}
 
@@ -353,7 +353,7 @@ func TestCacheVideoOnly(t *testing.T) {
 		HostVendorID: 0,
 	}, nil, nil)
 	prebid_cache_client.InitPrebidCache(server.URL)
-	cacheVideoOnly(bids, ctx, w, &auction{cfg: cfg, syncers: syncers, gdprPerms: gdprPerms, metricsEngine: &metricsConf.DummyMetricsEngine{}}, &pbsmetrics.Labels{})
+	cacheVideoOnly(bids, ctx, w, &Auction{cfg: cfg, syncers: syncers, gdprPerms: gdprPerms, metricsEngine: &metricsConf.DummyMetricsEngine{}}, &pbsmetrics.Labels{})
 	if bids[0].CacheID != "UUID-1" {
 		t.Errorf("UUID was '%s', should have been 'UUID-1'", bids[0].CacheID)
 	}
@@ -374,7 +374,7 @@ func TestCacheVideoOnly(t *testing.T) {
 func TestShouldUsersync(t *testing.T) {
 	doTest := func(gdprApplies string, consent string, allowBidderSync bool, allowHostCookies bool, expectAllow bool) {
 		t.Helper()
-		deps := auction{
+		deps := Auction{
 			cfg:     nil,
 			syncers: nil,
 			gdprPerms: &auctionMockPermissions{
@@ -591,7 +591,7 @@ func TestWriteAuctionError(t *testing.T) {
 }
 
 func TestPanicRecovery(t *testing.T) {
-	dummy := auction{
+	dummy := Auction{
 		cfg:     nil,
 		syncers: nil,
 		gdprPerms: &auctionMockPermissions{
@@ -603,6 +603,6 @@ func TestPanicRecovery(t *testing.T) {
 	panicker := func(bidder *pbs.PBSBidder, blables pbsmetrics.AdapterLabels) {
 		panic("panic!")
 	}
-	recovered := dummy.recoverSafely(panicker)
+	recovered := dummy.RecoverSafely(panicker)
 	recovered(nil, pbsmetrics.AdapterLabels{})
 }

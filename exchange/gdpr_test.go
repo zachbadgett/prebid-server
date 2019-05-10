@@ -76,7 +76,7 @@ func TestCleanPI(t *testing.T) {
 	assert.Equal(t, 123.46, bidReqCopy.Device.Geo.Lat)
 	assert.Equal(t, 7.98, bidReqCopy.Device.Geo.Lon)
 
-	// verify original untouched, as we want to only modify the cleaned copy for the bidder
+	// verify original untouched, as we want to only modify the cleaned copy for the Bidder
 	assert.Equal(t, "abc123", bidReqOrig.User.BuyerUID)
 	assert.Equal(t, "teapot", bidReqOrig.Device.DIDMD5)
 	assert.Equal(t, "12.123.56.128", bidReqOrig.Device.IP)

@@ -56,13 +56,13 @@ func writeAuctionError(w http.ResponseWriter, s string, err error) {
 	}
 	b, err := json.Marshal(&resp)
 	if err != nil {
-		glog.Errorf("Failed to marshal auction error JSON: %s", err)
+		glog.Errorf("Failed to marshal NewAuction error JSON: %s", err)
 	} else {
 		w.Write(b)
 	}
 }
 
-type auction struct {
+type Auction struct {
 	cfg           *config.Configuration
 	syncers       map[openrtb_ext.BidderName]usersync.Usersyncer
 	gdprPerms     gdpr.Permissions
@@ -71,8 +71,8 @@ type auction struct {
 	exchanges     map[string]adapters.Adapter
 }
 
-func Auction(cfg *config.Configuration, syncers map[openrtb_ext.BidderName]usersync.Usersyncer, gdprPerms gdpr.Permissions, metricsEngine pbsmetrics.MetricsEngine, dataCache cache.Cache, exchanges map[string]adapters.Adapter) httprouter.Handle {
-	a := &auction{
+func NewAuction(cfg *config.Configuration, syncers map[openrtb_ext.BidderName]usersync.Usersyncer, gdprPerms gdpr.Permissions, metricsEngine pbsmetrics.MetricsEngine, dataCache cache.Cache, exchanges map[string]adapters.Adapter) httprouter.Handle {
+	a := &Auction{
 		cfg:           cfg,
 		syncers:       syncers,
 		gdprPerms:     gdprPerms,
@@ -83,7 +83,7 @@ func Auction(cfg *config.Configuration, syncers map[openrtb_ext.BidderName]users
 	return a.auction
 }
 
-func (a *auction) auction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (a *Auction) auction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.Header().Add("Content-Type", "application/json")
 	labels := pbsmetrics.Labels{
 		Source:        pbsmetrics.DemandUnknown,
@@ -114,7 +114,7 @@ func (a *auction) auction(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	}()
 	if err != nil {
 		if glog.V(2) {
-			glog.Infof("Failed to parse /auction request: %v", err)
+			glog.Infof("Failed to parse /NewAuction request: %v", err)
 		}
 		writeAuctionError(w, "Error parsing request", err)
 		labels.RequestStatus = pbsmetrics.RequestStatusBadInput
@@ -199,7 +199,7 @@ func (a *auction) auction(w http.ResponseWriter, r *http.Request, _ httprouter.P
 				}
 			}
 			sentBids++
-			bidderRunner := a.recoverSafely(func(bidder *pbs.PBSBidder, aLabels pbsmetrics.AdapterLabels) {
+			bidderRunner := a.RecoverSafely(func(bidder *pbs.PBSBidder, aLabels pbsmetrics.AdapterLabels) {
 
 				start := time.Now()
 				bidList, err := ex.Call(ctx, req, bidder)
@@ -310,14 +310,14 @@ func (a *auction) auction(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	enc.Encode(resp)
 }
 
-func (a *auction) recoverSafely(inner func(*pbs.PBSBidder, pbsmetrics.AdapterLabels)) func(*pbs.PBSBidder, pbsmetrics.AdapterLabels) {
+func (a *Auction) RecoverSafely(inner func(*pbs.PBSBidder, pbsmetrics.AdapterLabels)) func(*pbs.PBSBidder, pbsmetrics.AdapterLabels) {
 	return func(bidder *pbs.PBSBidder, labels pbsmetrics.AdapterLabels) {
 		defer func() {
 			if r := recover(); r != nil {
 				if bidder == nil {
-					glog.Errorf("Legacy auction recovered panic: %v. Stack trace is: %v", r, string(debug.Stack()))
+					glog.Errorf("Legacy NewAuction recovered panic: %v. Stack trace is: %v", r, string(debug.Stack()))
 				} else {
-					glog.Errorf("Legacy auction recovered panic from Bidder %s: %v. Stack trace is: %v", bidder.BidderCode, r, string(debug.Stack()))
+					glog.Errorf("Legacy NewAuction recovered panic from Bidder %s: %v. Stack trace is: %v", bidder.BidderCode, r, string(debug.Stack()))
 				}
 				a.metricsEngine.RecordAdapterPanic(labels)
 			}
@@ -326,7 +326,7 @@ func (a *auction) recoverSafely(inner func(*pbs.PBSBidder, pbsmetrics.AdapterLab
 	}
 }
 
-func (a *auction) shouldUsersync(ctx context.Context, bidder openrtb_ext.BidderName, gdprApplies string, consent string) bool {
+func (a *Auction) shouldUsersync(ctx context.Context, bidder openrtb_ext.BidderName, gdprApplies string, consent string) bool {
 	switch gdprApplies {
 	case "0":
 		return true
@@ -345,7 +345,7 @@ func (a *auction) shouldUsersync(ctx context.Context, bidder openrtb_ext.BidderN
 }
 
 // cache video bids only for Web
-func cacheVideoOnly(bids pbs.PBSBidSlice, ctx context.Context, w http.ResponseWriter, deps *auction, labels *pbsmetrics.Labels) {
+func cacheVideoOnly(bids pbs.PBSBidSlice, ctx context.Context, w http.ResponseWriter, deps *Auction, labels *pbsmetrics.Labels) {
 	var cobjs []*pbc.CacheObject
 	for _, bid := range bids {
 		if bid.CreativeMediaType == "video" {
@@ -377,7 +377,7 @@ func cacheVideoOnly(bids pbs.PBSBidSlice, ctx context.Context, w http.ResponseWr
 // determine the num of ad unit sizes that were used in corresponding bid request
 // if num_adunit_sizes == 1, assign the height and/or width to bid's height/width
 // if num_adunit_sizes > 1, reject the bid (remove from list) and return an error
-// return updated bid list object for next steps in auction
+// return updated bid list object for next steps in NewAuction
 func checkForValidBidSize(bids pbs.PBSBidSlice, bidder *pbs.PBSBidder) pbs.PBSBidSlice {
 	finalValidBids := make([]*pbs.PBSBid, len(bids))
 	finalBidCounter := 0

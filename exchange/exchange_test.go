@@ -259,7 +259,7 @@ func TestPanicRecovery(t *testing.T) {
 	panicker := func(aName openrtb_ext.BidderName, coreBidder openrtb_ext.BidderName, request *openrtb.BidRequest, bidlabels *pbsmetrics.AdapterLabels, conversions currencies.Conversions) {
 		panic("panic!")
 	}
-	recovered := e.RecoverSafely(panicker, chBids)
+	recovered := e.recoverSafely(panicker, chBids)
 	apnLabels := pbsmetrics.AdapterLabels{
 		Source:      pbsmetrics.DemandWeb,
 		RType:       pbsmetrics.ReqTypeORTB2Web,

@@ -183,9 +183,9 @@ type cacheSpec struct {
 }
 
 type pbsBid struct {
-	Bid     *openrtb.Bid           `json:"Bid"`
-	BidType openrtb_ext.BidType    `json:"BidType"`
-	Bidder  openrtb_ext.BidderName `json:"Bidder"`
+	Bid     *openrtb.Bid           `json:"bid"`
+	BidType openrtb_ext.BidType    `json:"bidType"`
+	Bidder  openrtb_ext.BidderName `json:"bidder"`
 }
 
 type mockCache struct {

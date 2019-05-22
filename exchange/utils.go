@@ -118,12 +118,12 @@ func extractBuyerUIDs(user *openrtb.User) (map[string]string, error) {
 	return buyerUIDs, nil
 }
 
-// splitImps takes a list of Imps and returns a map of imps which have been sanitized for each Bidder.
+// splitImps takes a list of Imps and returns a map of imps which have been sanitized for each bidder.
 //
 // For example, suppose imps has two elements. One goes to rubicon, while the other goes to appnexus and index.
 // The returned map will have three keys: rubicon, appnexus, and index--each with one Imp.
-// The "imp.Ext" value of the appnexus Imp will only contain the "prebid" values, and "appnexus" value at the "Bidder" key.
-// The "imp.Ext" value of the rubicon Imp will only contain the "prebid" values, and "rubicon" value at the "Bidder" key.
+// The "imp.Ext" value of the appnexus Imp will only contain the "prebid" values, and "appnexus" value at the "bidder" key.
+// The "imp.Ext" value of the rubicon Imp will only contain the "prebid" values, and "rubicon" value at the "bidder" key.
 //
 // The goal here is so that Bidders only get Imps and Imp.Ext values which are intended for them.
 func splitImps(imps []openrtb.Imp) (map[string][]openrtb.Imp, []error) {
@@ -161,7 +161,7 @@ func splitImps(imps []openrtb.Imp) (map[string][]openrtb.Imp, []error) {
 	return splitImps, nil
 }
 
-// sanitizedImpCopy returns a copy of imp with its Ext filtered so that only "prebid" and Bidder params exist.
+// sanitizedImpCopy returns a copy of imp with its Ext filtered so that only "prebid" and bidder params exist.
 // It will not mutate the input imp.
 // This function will write the new imps to the output map passed in
 func sanitizedImpCopy(imp *openrtb.Imp,
@@ -175,7 +175,7 @@ func sanitizedImpCopy(imp *openrtb.Imp,
 	// We don't want to include other demand partners' Bidder params
 	// in the sanitized imp
 	if err := json.Unmarshal(rawPrebidExt, &prebidExt); err == nil {
-		delete(prebidExt, "Bidder")
+		delete(prebidExt, "bidder")
 
 		var err error
 		if rawPrebidExt, err = json.Marshal(prebidExt); err != nil {
@@ -191,7 +191,7 @@ func sanitizedImpCopy(imp *openrtb.Imp,
 		impCopy := *imp
 		newExt := make(map[string]json.RawMessage, 2)
 
-		newExt["Bidder"] = ext
+		newExt["bidder"] = ext
 
 		if rawPrebidExt != nil {
 			newExt["prebid"] = rawPrebidExt

@@ -254,7 +254,7 @@ func initPBSAdUnit(imp *openrtb.Imp, adUnit *pbs.PBSAdUnit) error {
 		sizes = append(sizes, imp.Banner.Format...)
 	}
 
-	params, _, _, err := jsonparser.Get(imp.Ext, "Bidder")
+	params, _, _, err := jsonparser.Get(imp.Ext, "bidder")
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func initPBSAdUnit(imp *openrtb.Imp, adUnit *pbs.PBSAdUnit) error {
 		mediaTypes = append(mediaTypes, pbs.MEDIA_TYPE_VIDEO)
 	}
 	if len(mediaTypes) == 0 {
-		return errors.New("legacy bidders can only Bid on banner and video ad units")
+		return errors.New("legacy bidders can only bid on banner and video ad units")
 	}
 
 	adUnit.Sizes = sizes

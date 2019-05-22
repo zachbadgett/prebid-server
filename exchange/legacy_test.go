@@ -32,7 +32,7 @@ func TestSiteVideo(t *testing.T) {
 		},
 		User: &openrtb.User{
 			ID:       "host-id",
-			BuyerUID: "Bidder-id",
+			BuyerUID: "bidder-id",
 		},
 		Test: 1,
 		Imp: []openrtb.Imp{{
@@ -50,7 +50,7 @@ func TestSiteVideo(t *testing.T) {
 					H: 250,
 				}},
 			},
-			Ext: json.RawMessage(`{"Bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
+			Ext: json.RawMessage(`{"bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
 		}},
 	}
 
@@ -60,7 +60,7 @@ func TestSiteVideo(t *testing.T) {
 	currencyConverter := currencies.NewRateConverterDefault()
 	_, errs := exchangeBidder.RequestBid(context.Background(), ortbRequest, openrtb_ext.BidderRubicon, 1.0, currencyConverter.Rates())
 	if len(errs) > 0 {
-		t.Errorf("Unexpected error requesting Bids: %v", errs)
+		t.Errorf("Unexpected error requesting bids: %v", errs)
 	}
 
 	if mockAdapter.gotRequest == nil {
@@ -68,13 +68,13 @@ func TestSiteVideo(t *testing.T) {
 	}
 
 	if mockAdapter.gotBidder == nil {
-		t.Fatalf("Mock adapter never received a Bidder.")
+		t.Fatalf("Mock adapter never received bidder.")
 	}
 
 	assertEquivalentRequests(t, ortbRequest, mockAdapter.gotRequest)
 
 	if mockAdapter.gotBidder.BidderCode != string(openrtb_ext.BidderRubicon) {
-		t.Errorf("Wrong Bidder code. Expected %s, got %s", string(openrtb_ext.BidderRubicon), mockAdapter.gotBidder.BidderCode)
+		t.Errorf("Wrong bidder code. Expected %s, got %s", string(openrtb_ext.BidderRubicon), mockAdapter.gotBidder.BidderCode)
 	}
 	assertEquivalentBidder(t, ortbRequest, mockAdapter.gotBidder)
 }
@@ -84,7 +84,7 @@ func TestAppBanner(t *testing.T) {
 	ortbRequest.TMax = 1000
 	ortbRequest.User = &openrtb.User{
 		ID:       "host-id",
-		BuyerUID: "Bidder-id",
+		BuyerUID: "bidder-id",
 	}
 	ortbRequest.Test = 1
 
@@ -94,7 +94,7 @@ func TestAppBanner(t *testing.T) {
 	currencyConverter := currencies.NewRateConverterDefault()
 	_, errs := exchangeBidder.RequestBid(context.Background(), ortbRequest, openrtb_ext.BidderRubicon, 1.0, currencyConverter.Rates())
 	if len(errs) > 0 {
-		t.Errorf("Unexpected error requesting Bids: %v", errs)
+		t.Errorf("Unexpected error requesting bids: %v", errs)
 	}
 
 	if mockAdapter.gotRequest == nil {
@@ -102,10 +102,10 @@ func TestAppBanner(t *testing.T) {
 	}
 
 	if mockAdapter.gotBidder == nil {
-		t.Fatalf("Mock adapter never received a Bidder.")
+		t.Fatalf("Mock adapter never received a bidder.")
 	}
 	if mockAdapter.gotBidder.BidderCode != string(openrtb_ext.BidderRubicon) {
-		t.Errorf("Wrong Bidder code. Expected %s, got %s", string(openrtb_ext.BidderRubicon), mockAdapter.gotBidder.BidderCode)
+		t.Errorf("Wrong bidder code. Expected %s, got %s", string(openrtb_ext.BidderRubicon), mockAdapter.gotBidder.BidderCode)
 	}
 
 	assertEquivalentRequests(t, ortbRequest, mockAdapter.gotRequest)
@@ -116,7 +116,7 @@ func TestBidTransforms(t *testing.T) {
 	bidAdjustment := 0.3
 	initialBidPrice := 0.5
 	legalBid := &pbs.PBSBid{
-		BidID:             "Bid-1",
+		BidID:             "bid-1",
 		AdUnitCode:        "adunit-1",
 		Creative_id:       "creative-1",
 		CreativeMediaType: "banner",
@@ -147,7 +147,7 @@ func TestBidTransforms(t *testing.T) {
 	}
 
 	if len(seatBid.Bids) != 1 {
-		t.Fatalf("Bad Bid count. Expected 1, got %d", len(seatBid.Bids))
+		t.Fatalf("Bad bid count. Expected 1, got %d", len(seatBid.Bids))
 	}
 	theBid := seatBid.Bids[0]
 	if theBid.BidType != openrtb_ext.BidTypeBanner {
@@ -253,7 +253,7 @@ func newAppOrtbRequest() *openrtb.BidRequest {
 					H: 250,
 				}},
 			},
-			Ext: json.RawMessage(`{"Bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
+			Ext: json.RawMessage(`{"bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
 		}},
 	}
 }
@@ -277,7 +277,7 @@ func TestErrorResponse(t *testing.T) {
 					H: 250,
 				}},
 			},
-			Ext: json.RawMessage(`{"Bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
+			Ext: json.RawMessage(`{"bidder":{"cp":512379,"ct":486653,"cf":"300x250"}}`),
 		}},
 	}
 
@@ -315,7 +315,7 @@ func TestWithTargeting(t *testing.T) {
 					H: 250,
 				}},
 			},
-			Ext: json.RawMessage(`{"Bidder": {"placementId": "1959066997713356_1959836684303054"}}`),
+			Ext: json.RawMessage(`{"bidder": {"placementId": "1959066997713356_1959836684303054"}}`),
 		}},
 	}
 
@@ -331,10 +331,10 @@ func TestWithTargeting(t *testing.T) {
 		t.Fatalf("This should not produce errors. Got %v", errs)
 	}
 	if len(bid.Bids) != 1 {
-		t.Fatalf("We should get one Bid back.")
+		t.Fatalf("We should get one bid back.")
 	}
 	if bid.Bids[0] == nil {
-		t.Errorf("The returned Bid should not be nil.")
+		t.Errorf("The returned bid should not be nil.")
 	}
 }
 
@@ -388,7 +388,7 @@ func assertEquivalentRequests(t *testing.T, req *openrtb.BidRequest, legacy *pbs
 	}
 	if req.User != nil {
 		if id, _, _ := legacy.Cookie.GetUID("someFamily"); id != req.User.BuyerUID {
-			t.Errorf("Bidder usersync did not translate. OpenRTB: %v, Legacy: %v.", req.User.BuyerUID, id)
+			t.Errorf("bidder usersync did not translate. OpenRTB: %v, Legacy: %v.", req.User.BuyerUID, id)
 		}
 		if id, _, _ := legacy.Cookie.GetUID("adnxs"); id != req.User.ID {
 			t.Errorf("user ID did not translate. OpenRTB: %v, Legacy: %v.", req.User.ID, id)
@@ -415,7 +415,7 @@ func assertEquivalentImp(t *testing.T, index int, imp *openrtb.Imp, legacy *pbs.
 		t.Errorf("imp[%d].instl did not translate. OpenRTB %d, legacy %d", index, imp.Instl, legacy.Instl)
 	}
 
-	if params, _, _, _ := jsonparser.Get(imp.Ext, "Bidder"); !jsonpatch.Equal(params, legacy.Params) {
+	if params, _, _, _ := jsonparser.Get(imp.Ext, "bidder"); !jsonpatch.Equal(params, legacy.Params) {
 		t.Errorf("imp[%d].Ext.Bidder did not translate. OpenRTB %s, legacy %s", index, string(params), string(legacy.Params))
 	}
 

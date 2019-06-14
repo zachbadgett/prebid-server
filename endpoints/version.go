@@ -1,10 +1,10 @@
 package endpoints
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type versionModel struct {
@@ -18,7 +18,7 @@ func NewVersionEndpoint(version string) func(w http.ResponseWriter, r *http.Requ
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonOutput, err := json.Marshal(versionModel{
+		jsonOutput, err := jsoniter.Marshal(versionModel{
 			Revision: version,
 		})
 		if err != nil {

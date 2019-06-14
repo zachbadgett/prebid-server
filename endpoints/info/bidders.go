@@ -6,6 +6,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -22,7 +23,7 @@ func NewBiddersEndpoint(aliases map[string]string) httprouter.Handle {
 		bidderNames = append(bidderNames, aliasName)
 	}
 
-	biddersJson, err := json.Marshal(bidderNames)
+	biddersJson, err := jsoniter.Marshal(bidderNames)
 	if err != nil {
 		glog.Fatalf("error creating /info/bidders endpoint response: %v", err)
 	}
@@ -40,7 +41,7 @@ func NewBidderDetailsEndpoint(infos adapters.BidderInfos, aliases map[string]str
 	// Build all the responses up front, since there are a finite number and it won't use much memory.
 	responses := make(map[string]json.RawMessage, len(infos))
 	for bidderName, bidderInfo := range infos {
-		jsonData, err := json.Marshal(bidderInfo)
+		jsonData, err := jsoniter.Marshal(bidderInfo)
 		if err != nil {
 			glog.Fatalf("Failed to JSON-marshal bidder-info/%s.yaml data.", bidderName)
 		}

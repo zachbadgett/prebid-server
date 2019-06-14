@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mssola/user_agent"
 	"github.com/prebid/prebid-server/adapters"
@@ -54,7 +55,7 @@ func writeAuctionError(w http.ResponseWriter, s string, err error) {
 	} else {
 		resp.Status = s
 	}
-	b, err := json.Marshal(&resp)
+	b, err := jsoniter.Marshal(&resp)
 	if err != nil {
 		glog.Errorf("Failed to marshal NewAuction error JSON: %s", err)
 	} else {

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/yudai/gojsondiff"
@@ -81,7 +82,7 @@ func loadFile(filename string) (*testSpec, error) {
 	}
 
 	var spec testSpec
-	if err := json.Unmarshal(specData, &spec); err != nil {
+	if err := jsoniter.Unmarshal(specData, &spec); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal JSON from file: %v", err)
 	}
 
@@ -223,8 +224,8 @@ func diffHttpRequests(t *testing.T, description string, actual *adapters.Request
 
 	diffStrings(t, fmt.Sprintf("%s.uri", description), actual.Uri, expected.Uri)
 	if expected.Headers != nil {
-		actualHeader, _ := json.Marshal(actual.Headers)
-		expectedHeader, _ := json.Marshal(expected.Headers)
+		actualHeader, _ := jsoniter.Marshal(actual.Headers)
+		expectedHeader, _ := jsoniter.Marshal(expected.Headers)
 		diffJson(t, description, actualHeader, expectedHeader)
 	}
 	diffJson(t, description, actual.Body, expected.Body)
@@ -247,7 +248,7 @@ func diffOrtbBids(t *testing.T, description string, actual *openrtb.Bid, expecte
 		return
 	}
 
-	actualJson, err := json.Marshal(actual)
+	actualJson, err := jsoniter.Marshal(actual)
 	if err != nil {
 		t.Fatalf("%s failed to marshal actual Bid into JSON. %v", description, err)
 	}
@@ -277,7 +278,7 @@ func diffJson(t *testing.T, description string, actual []byte, expected []byte) 
 
 	if diff.Modified() {
 		var left interface{}
-		if err := json.Unmarshal(actual, &left); err != nil {
+		if err := jsoniter.Unmarshal(actual, &left); err != nil {
 			t.Fatalf("%s json did not match, but unmarhsalling failed. %v", description, err)
 		}
 		printer := formatter.NewAsciiFormatter(left, formatter.AsciiFormatterConfig{

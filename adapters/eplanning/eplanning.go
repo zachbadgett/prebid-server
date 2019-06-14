@@ -1,7 +1,6 @@
 package eplanning
 
 import (
-	"encoding/json"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -11,6 +10,7 @@ import (
 
 	"fmt"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -157,14 +157,14 @@ func cleanName(name string) string {
 func verifyImp(imp *openrtb.Imp) (*openrtb_ext.ExtImpEPlanning, error) {
 	var bidderExt adapters.ExtImpBidder
 
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return nil, &errortypes.BadInput{
 			Message: fmt.Sprintf("Ignoring imp id=%s, error while decoding extImpBidder, err: %s", imp.ID, err),
 		}
 	}
 
 	impExt := openrtb_ext.ExtImpEPlanning{}
-	err := json.Unmarshal(bidderExt.Bidder, &impExt)
+	err := jsoniter.Unmarshal(bidderExt.Bidder, &impExt)
 	if err != nil {
 		return nil, &errortypes.BadInput{
 			Message: fmt.Sprintf("Ignoring imp id=%s, error while decoding impExt, err: %s", imp.ID, err),
@@ -232,7 +232,7 @@ func (adapter *EPlanningAdapter) MakeBids(internalRequest *openrtb.BidRequest, e
 	}
 
 	var parsedResponse hbResponse
-	if err := json.Unmarshal(response.Body, &parsedResponse); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &parsedResponse); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("Error unmarshaling HB response: %s", err.Error()),
 		}}

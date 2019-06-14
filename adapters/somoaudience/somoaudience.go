@@ -1,11 +1,11 @@
 package somoaudience
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -98,13 +98,13 @@ func (a *SomoaudienceAdapter) makeRequest(request *openrtb.BidRequest) (*adapter
 
 	request.Imp = validImps
 
-	request.Ext, err = json.Marshal(reqExt)
+	request.Ext, err = jsoniter.Marshal(reqExt)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -133,14 +133,14 @@ func (a *SomoaudienceAdapter) makeRequest(request *openrtb.BidRequest) (*adapter
 
 func preprocess(imp *openrtb.Imp, reqExt *somoaudienceReqExt) (string, error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return "", &errortypes.BadInput{
 			Message: "ignoring imp id=empty-extbid-test, extImpBidder is empty",
 		}
 	}
 
 	var somoExt openrtb_ext.ExtImpSomoaudience
-	if err := json.Unmarshal(bidderExt.Bidder, &somoExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &somoExt); err != nil {
 		return "", &errortypes.BadInput{
 			Message: "ignoring imp id=empty-extbid-test, error while decoding impExt, err: " + err.Error(),
 		}
@@ -171,7 +171,7 @@ func (a *SomoaudienceAdapter) MakeBids(bidReq *openrtb.BidRequest, unused *adapt
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/stored_requests"
 
 	"github.com/golang/glog"
@@ -103,7 +104,7 @@ func unpackResponse(resp *http.Response) (requestData map[string]json.RawMessage
 
 	if resp.StatusCode == http.StatusOK {
 		var responseObj responseContract
-		if err := json.Unmarshal(respBytes, &responseObj); err != nil {
+		if err := jsoniter.Unmarshal(respBytes, &responseObj); err != nil {
 			errs = append(errs, err)
 			return
 		}

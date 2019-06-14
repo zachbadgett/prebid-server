@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -76,7 +77,7 @@ func DummyAppNexusServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var breq openrtb.BidRequest
-	err = json.Unmarshal(body, &breq)
+	err = jsoniter.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -102,7 +103,7 @@ func DummyAppNexusServer(w http.ResponseWriter, r *http.Request) {
 
 	for i, imp := range breq.Imp {
 		var aix appnexusImpExt
-		err = json.Unmarshal(imp.Ext, &aix)
+		err = jsoniter.Unmarshal(imp.Ext, &aix)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -236,7 +237,7 @@ func DummyAppNexusServer(w http.ResponseWriter, r *http.Request) {
 		<-time.After(andata.delay)
 	}
 
-	js, err := json.Marshal(resp)
+	js, err := jsoniter.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

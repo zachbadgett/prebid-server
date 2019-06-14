@@ -3,7 +3,6 @@ package sovrn
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -59,7 +59,7 @@ func (s *SovrnAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 	// add tag ids to impressions
 	for i, unit := range bidder.AdUnits {
 		var params openrtb_ext.ExtImpSovrn
-		err = json.Unmarshal(unit.Params, &params)
+		err = jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (s *SovrnAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 		sovrnReq.Imp[i].TagID = getTagid(params)
 	}
 
-	reqJSON, err := json.Marshal(sovrnReq)
+	reqJSON, err := jsoniter.Marshal(sovrnReq)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (s *SovrnAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pb
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return nil, &errortypes.BadServerResponse{
 			Message: err.Error(),
@@ -189,7 +189,7 @@ func (s *SovrnAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.Re
 		return nil, errs
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -244,7 +244,7 @@ func (s *SovrnAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalReq
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: err.Error(),
 		}}
@@ -271,14 +271,14 @@ func (s *SovrnAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalReq
 
 func preprocess(imp *openrtb.Imp) (string, error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return "", &errortypes.BadInput{
 			Message: err.Error(),
 		}
 	}
 
 	var sovrnExt openrtb_ext.ExtImpSovrn
-	if err := json.Unmarshal(bidderExt.Bidder, &sovrnExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &sovrnExt); err != nil {
 		return "", &errortypes.BadInput{
 			Message: err.Error(),
 		}

@@ -1,17 +1,17 @@
 package openrtb_ext
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test the unmashalling of the prebid extensions and setting default Price Granularity
 func TestExtRequestTargeting(t *testing.T) {
 	extRequest := &ExtRequest{}
-	err := json.Unmarshal([]byte(ext1), extRequest)
+	err := jsoniter.Unmarshal([]byte(ext1), extRequest)
 	if err != nil {
 		t.Errorf("ext1 Unmashall falure: %s", err.Error())
 	}
@@ -20,7 +20,7 @@ func TestExtRequestTargeting(t *testing.T) {
 	}
 
 	extRequest = &ExtRequest{}
-	err = json.Unmarshal([]byte(ext2), extRequest)
+	err = jsoniter.Unmarshal([]byte(ext2), extRequest)
 	if err != nil {
 		t.Errorf("ext2 Unmashall falure: %s", err.Error())
 	}
@@ -34,7 +34,7 @@ func TestExtRequestTargeting(t *testing.T) {
 	}
 
 	extRequest = &ExtRequest{}
-	err = json.Unmarshal([]byte(ext3), extRequest)
+	err = jsoniter.Unmarshal([]byte(ext3), extRequest)
 	if err != nil {
 		t.Errorf("ext3 Unmashall falure: %s", err.Error())
 	}
@@ -71,34 +71,34 @@ const ext3 = `{
 
 func TestCacheIllegal(t *testing.T) {
 	var bids ExtRequestPrebidCache
-	if err := json.Unmarshal([]byte(`{}`), &bids); err == nil {
+	if err := jsoniter.Unmarshal([]byte(`{}`), &bids); err == nil {
 		t.Error("Unmarshal should fail when cache.bids is undefined.")
 	}
-	if err := json.Unmarshal([]byte(`{"bids":null}`), &bids); err == nil {
+	if err := jsoniter.Unmarshal([]byte(`{"bids":null}`), &bids); err == nil {
 		t.Error("Unmarshal should fail when cache.bids is null.")
 	}
-	if err := json.Unmarshal([]byte(`{"bids":true}`), &bids); err == nil {
+	if err := jsoniter.Unmarshal([]byte(`{"bids":true}`), &bids); err == nil {
 		t.Error("Unmarshal should fail when cache.bids is not an object.")
 	}
 }
 
 func TestCacheBids(t *testing.T) {
 	var bids ExtRequestPrebidCache
-	assert.NoError(t, json.Unmarshal([]byte(`{"bids":{}}`), &bids))
+	assert.NoError(t, jsoniter.Unmarshal([]byte(`{"bids":{}}`), &bids))
 	assert.NotNil(t, bids.Bids)
 	assert.Nil(t, bids.VastXML)
 }
 
 func TestCacheVast(t *testing.T) {
 	var bids ExtRequestPrebidCache
-	assert.NoError(t, json.Unmarshal([]byte(`{"vastxml":{}}`), &bids))
+	assert.NoError(t, jsoniter.Unmarshal([]byte(`{"vastxml":{}}`), &bids))
 	assert.Nil(t, bids.Bids)
 	assert.NotNil(t, bids.VastXML)
 }
 
 func TestCacheNothing(t *testing.T) {
 	var bids ExtRequestPrebidCache
-	assert.Error(t, json.Unmarshal([]byte(`{}`), &bids))
+	assert.Error(t, jsoniter.Unmarshal([]byte(`{}`), &bids))
 }
 
 type granularityTestData struct {
@@ -109,7 +109,7 @@ type granularityTestData struct {
 func TestGranularityUnmarshal(t *testing.T) {
 	for _, test := range validGranularityTests {
 		var resolved PriceGranularity
-		err := json.Unmarshal(test.json, &resolved)
+		err := jsoniter.Unmarshal(test.json, &resolved)
 		if err != nil {
 			t.Errorf("Failed to Unmarshall granularity: %s", err.Error())
 		}
@@ -191,7 +191,7 @@ func TestGranularityUnmarshalBad(t *testing.T) {
 	var resolved PriceGranularity
 	for _, b := range tests {
 		resolved = PriceGranularity{}
-		err := json.Unmarshal(b, &resolved)
+		err := jsoniter.Unmarshal(b, &resolved)
 		if err == nil {
 			t.Errorf("Invalid granularity unmarshalled without error.\nJSON was: %s\n Resolved to: %v", string(b), resolved)
 		}

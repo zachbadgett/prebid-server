@@ -1,11 +1,11 @@
 package beachfront
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -150,14 +150,14 @@ func (a *BeachfrontAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapte
 
 	// These are fatal errors -------------
 	if uri == VideoEndpoint {
-		reqJSON, err = json.Marshal(beachfrontRequests.Video)
+		reqJSON, err = jsoniter.Marshal(beachfrontRequests.Video)
 		uri = uri + beachfrontRequests.Video.AppId + VideoEndpointSuffix
 	} else {
 		/*
 			We will get here if request contains no Video imps, though it might have
 			Audio or Native imps as well as banner.
 		*/
-		reqJSON, err = json.Marshal(beachfrontRequests.Banner)
+		reqJSON, err = jsoniter.Marshal(beachfrontRequests.Banner)
 	}
 
 	if imps == 0 {
@@ -224,14 +224,14 @@ func getBannerRequest(req *openrtb.BidRequest) (BeachfrontBannerRequest, []error
 			}
 
 			var bidderExt adapters.ExtImpBidder
-			if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+			if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 				// possible banner error 2
 				errs = append(errs, err)
 				continue
 			}
 
 			var beachfrontExt openrtb_ext.ExtImpBeachfront
-			if err := json.Unmarshal(bidderExt.Bidder, &beachfrontExt); err != nil {
+			if err := jsoniter.Unmarshal(bidderExt.Bidder, &beachfrontExt); err != nil {
 				// possible banner error 3 - supplemental/unmarshal-error-banner.json
 				errs = append(errs, err)
 				continue
@@ -341,13 +341,13 @@ func getVideoRequest(req *openrtb.BidRequest) (BeachfrontVideoRequest, []error, 
 			beachfrontReq.Imp[videoImpsIndex].Video.W = imp.Video.W
 
 			var bidderExt adapters.ExtImpBidder
-			if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+			if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 				errs = append(errs, err)
 				continue
 			}
 
 			var beachfrontVideoExt openrtb_ext.ExtImpBeachfront
-			if err := json.Unmarshal(bidderExt.Bidder, &beachfrontVideoExt); err != nil {
+			if err := jsoniter.Unmarshal(bidderExt.Bidder, &beachfrontVideoExt); err != nil {
 				errs = append(errs, err)
 				continue
 			}
@@ -420,13 +420,13 @@ func postprocess(response *adapters.ResponseData, externalRequest *adapters.Requ
 
 	if bidtype == openrtb_ext.BidTypeVideo {
 		var openrtbResp openrtb.BidResponse
-		if err := json.Unmarshal(response.Body, &openrtbResp); err != nil {
+		if err := jsoniter.Unmarshal(response.Body, &openrtbResp); err != nil {
 			errs = append(errs, err)
 			return nil, errs
 		}
 		return postprocessVideo(openrtbResp.SeatBid[0].Bid, externalRequest, id)
 	} else {
-		if err := json.Unmarshal(response.Body, &beachfrontResp); err != nil {
+		if err := jsoniter.Unmarshal(response.Body, &beachfrontResp); err != nil {
 			errs = append(errs, err)
 			return nil, errs
 		}
@@ -461,7 +461,7 @@ func postprocessVideo(bids []openrtb.Bid, externalRequest *adapters.RequestData,
 	var xtrnal BeachfrontVideoRequest
 	var errs = make([]error, 0)
 
-	if err := json.Unmarshal(externalRequest.Body, &xtrnal); err != nil {
+	if err := jsoniter.Unmarshal(externalRequest.Body, &xtrnal); err != nil {
 		errs = append(errs, err)
 		return bids, errs
 	}

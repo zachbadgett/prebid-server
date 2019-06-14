@@ -1,7 +1,6 @@
 package info_test
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/prebid/prebid-server/adapters"
@@ -50,7 +50,7 @@ func testGetBidders(t *testing.T, aliases map[string]string) {
 	}
 	bodyBytes := r.Body.Bytes()
 	bidderSlice := make([]string, 0, len(openrtb_ext.BidderMap)+len(aliases))
-	if err := json.Unmarshal(bodyBytes, &bidderSlice); err != nil {
+	if err := jsoniter.Unmarshal(bodyBytes, &bidderSlice); err != nil {
 		t.Errorf("Failed to unmarshal /info/bidders response: %v", err)
 	}
 	for _, bidderName := range bidderSlice {
@@ -126,7 +126,7 @@ func testGetBidderAccuracy(t *testing.T, alias string) {
 	endpoint(r, req, params)
 
 	var fileData adapters.BidderInfo
-	if err := json.Unmarshal(r.Body.Bytes(), &fileData); err != nil {
+	if err := jsoniter.Unmarshal(r.Body.Bytes(), &fileData); err != nil {
 		t.Fatalf("Failed to unmarshal JSON from endpoints/info/sample/someBidder.yaml: %v", err)
 	}
 

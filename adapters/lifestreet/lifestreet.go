@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -62,7 +63,7 @@ func (a *LifestreetAdapter) callOne(ctx context.Context, req *pbs.PBSRequest, re
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return
 	}
@@ -112,7 +113,7 @@ func (a *LifestreetAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 	reqIndex := 0
 	for i, unit := range bidder.AdUnits {
 		var params lifestreetParams
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, err
 		}

@@ -3,11 +3,11 @@ package conversant
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -70,7 +70,7 @@ func (a *ConversantAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 			continue
 		}
 
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, &errortypes.BadInput{
 				Message: err.Error(),
@@ -165,7 +165,7 @@ func (a *ConversantAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 
 	// Convert request to json to be sent over http
 
-	j, _ := json.Marshal(cnvrReq)
+	j, _ := jsoniter.Marshal(cnvrReq)
 
 	if req.IsDebug {
 		debug.RequestBody = string(j)
@@ -215,7 +215,7 @@ func (a *ConversantAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidde
 
 	var bidResp openrtb.BidResponse
 
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return nil, &errortypes.BadServerResponse{
 			Message: err.Error(),

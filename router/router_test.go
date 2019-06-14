@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
@@ -44,7 +45,7 @@ func TestNewJsonDirectoryServer(t *testing.T) {
 	handler(recorder, request, nil)
 
 	var data map[string]json.RawMessage
-	json.Unmarshal(recorder.Body.Bytes(), &data)
+	jsoniter.Unmarshal(recorder.Body.Bytes(), &data)
 
 	// Make sure that every adapter has a json schema by the same name associated with it.
 	adapterFiles, err := ioutil.ReadDir(adapterDirectory)

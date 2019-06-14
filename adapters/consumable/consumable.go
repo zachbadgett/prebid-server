@@ -1,16 +1,17 @@
 package consumable
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/mxmCherry/openrtb"
-	"github.com/prebid/prebid-server/adapters"
-	"github.com/prebid/prebid-server/errortypes"
-	"github.com/prebid/prebid-server/openrtb_ext"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/mxmCherry/openrtb"
+	"github.com/prebid/prebid-server/adapters"
+	"github.com/prebid/prebid-server/errortypes"
+	"github.com/prebid/prebid-server/openrtb_ext"
 )
 
 type ConsumableAdapter struct {
@@ -150,7 +151,7 @@ func (a *ConsumableAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapte
 		}
 	}
 
-	bodyBytes, err := json.Marshal(body)
+	bodyBytes, err := jsoniter.Marshal(body)
 	if err != nil {
 		return nil, []error{err}
 	}
@@ -193,7 +194,7 @@ func (a *ConsumableAdapter) MakeBids(
 	}
 
 	var serverResponse bidResponse // response from Consumable
-	if err := json.Unmarshal(response.Body, &serverResponse); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &serverResponse); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("error while decoding response, err: %s", err),
 		}}
@@ -251,14 +252,14 @@ func getImp(impId string, imps []openrtb.Imp) *openrtb.Imp {
 
 func extractExtensions(impression openrtb.Imp) (*adapters.ExtImpBidder, *openrtb_ext.ExtImpConsumable, []error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(impression.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(impression.Ext, &bidderExt); err != nil {
 		return nil, nil, []error{&errortypes.BadInput{
 			Message: err.Error(),
 		}}
 	}
 
 	var consumableExt openrtb_ext.ExtImpConsumable
-	if err := json.Unmarshal(bidderExt.Bidder, &consumableExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &consumableExt); err != nil {
 		return nil, nil, []error{&errortypes.BadInput{
 			Message: err.Error(),
 		}}

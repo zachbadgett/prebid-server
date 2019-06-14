@@ -2,12 +2,12 @@ package usersync
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/stretchr/testify/assert"
@@ -179,7 +179,7 @@ func TestCookieReadWrite(t *testing.T) {
 func TestPopulatedLegacyCookieRead(t *testing.T) {
 	legacyJson := `{"uids":{"adnxs":"123","audienceNetwork":"456"},"bday":"2017-08-03T21:04:52.629198911Z"}`
 	var cookie PBSCookie
-	json.Unmarshal([]byte(legacyJson), &cookie)
+	jsoniter.Unmarshal([]byte(legacyJson), &cookie)
 
 	if cookie.LiveSyncCount() != 0 {
 		t.Errorf("Expected 0 user syncs. Got %d", cookie.LiveSyncCount())
@@ -195,7 +195,7 @@ func TestPopulatedLegacyCookieRead(t *testing.T) {
 func TestEmptyLegacyCookieRead(t *testing.T) {
 	legacyJson := `{"bday":"2017-08-29T18:54:18.393925772Z"}`
 	var cookie PBSCookie
-	json.Unmarshal([]byte(legacyJson), &cookie)
+	jsoniter.Unmarshal([]byte(legacyJson), &cookie)
 
 	if cookie.LiveSyncCount() != 0 {
 		t.Errorf("Expected 0 user syncs. Got %d", cookie.LiveSyncCount())

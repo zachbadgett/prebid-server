@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
@@ -257,7 +258,7 @@ func CreateService(tagsToBid map[string]bool) adapterstest.OrtbMockService {
 			return
 		}
 		var breq openrtb.BidRequest
-		err = json.Unmarshal(body, &breq)
+		err = jsoniter.Unmarshal(body, &breq)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -274,7 +275,7 @@ func CreateService(tagsToBid map[string]bool) adapterstest.OrtbMockService {
 			w.WriteHeader(204)
 		} else {
 			// serialize the bids to openrtb.BidResponse
-			js, _ := json.Marshal(openrtb.BidResponse{
+			js, _ := jsoniter.Marshal(openrtb.BidResponse{
 				SeatBid: []openrtb.SeatBid{
 					{
 						Bid: bids,

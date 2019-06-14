@@ -2,11 +2,11 @@ package usersync
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 )
@@ -79,7 +79,7 @@ func ParsePBSCookie(uidCookie *http.Cookie) *PBSCookie {
 		// corrupted cookie; we should reset
 		return pc
 	}
-	err = json.Unmarshal(j, pc)
+	err = jsoniter.Unmarshal(j, pc)
 
 	// The error on Unmarshal here isn't terribly important.
 	// If the cookie has been corrupted, we should reset to an empty one anyway.
@@ -111,7 +111,7 @@ func (cookie *PBSCookie) SetPreference(allow bool) {
 
 // Gets an HTTP cookie containing all the data from this UserSyncMap. This is a snapshot--not a live view.
 func (cookie *PBSCookie) ToHTTPCookie(ttl time.Duration) *http.Cookie {
-	j, _ := json.Marshal(cookie)
+	j, _ := jsoniter.Marshal(cookie)
 	b64 := base64.URLEncoding.EncodeToString(j)
 
 	return &http.Cookie{
@@ -225,7 +225,7 @@ type pbsCookieJson struct {
 }
 
 func (cookie *PBSCookie) MarshalJSON() ([]byte, error) {
-	return json.Marshal(pbsCookieJson{
+	return jsoniter.Marshal(pbsCookieJson{
 		UIDs:     cookie.uids,
 		OptOut:   cookie.optOut,
 		Birthday: cookie.birthday,
@@ -242,7 +242,7 @@ func (cookie *PBSCookie) MarshalJSON() ([]byte, error) {
 // updated and remove the legacy logic.
 func (cookie *PBSCookie) UnmarshalJSON(b []byte) error {
 	var cookieContract pbsCookieJson
-	err := json.Unmarshal(b, &cookieContract)
+	err := jsoniter.Unmarshal(b, &cookieContract)
 	if err == nil {
 		cookie.optOut = cookieContract.OptOut
 		cookie.birthday = cookieContract.Birthday

@@ -1,10 +1,10 @@
 package yieldmo
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -40,7 +40,7 @@ func (a *YieldmoAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Req
 	}
 
 	// Last Step
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -63,7 +63,7 @@ func preprocess(request *openrtb.BidRequest) error {
 		var imp = request.Imp[i]
 		var bidderExt adapters.ExtImpBidder
 
-		if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+		if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 			return &errortypes.BadInput{
 				Message: err.Error(),
 			}
@@ -71,7 +71,7 @@ func preprocess(request *openrtb.BidRequest) error {
 
 		var yieldmoExt openrtb_ext.ExtImpYieldmo
 
-		if err := json.Unmarshal(bidderExt.Bidder, &yieldmoExt); err != nil {
+		if err := jsoniter.Unmarshal(bidderExt.Bidder, &yieldmoExt); err != nil {
 			return &errortypes.BadInput{
 				Message: err.Error(),
 			}
@@ -80,7 +80,7 @@ func preprocess(request *openrtb.BidRequest) error {
 		var impExt Ext
 		impExt.PlacementId = yieldmoExt.PlacementId
 
-		impExtJSON, err := json.Marshal(impExt)
+		impExtJSON, err := jsoniter.Marshal(impExt)
 		if err != nil {
 			return &errortypes.BadInput{
 				Message: err.Error(),
@@ -113,7 +113,7 @@ func (a *YieldmoAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalR
 
 	var bidResp openrtb.BidResponse
 
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

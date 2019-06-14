@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Prevents #197
@@ -136,7 +138,7 @@ func newHandler(numResponses int) http.HandlerFunc {
 			resp.Responses[i].UUID = strconv.Itoa(i)
 		}
 
-		respBytes, _ := json.Marshal(resp)
+		respBytes, _ := jsoniter.Marshal(resp)
 		w.Write(respBytes)
 	})
 }

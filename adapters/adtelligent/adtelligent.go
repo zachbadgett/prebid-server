@@ -1,10 +1,10 @@
 package adtelligent
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -63,7 +63,7 @@ func (a *AdtelligentAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapt
 			request.Imp = append(request.Imp, imps[impIds[i]])
 		}
 
-		body, err := json.Marshal(request)
+		body, err := jsoniter.Marshal(request)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("error while encoding bidRequest, err: %s", err))
 			return nil, errors
@@ -92,7 +92,7 @@ func (a *AdtelligentAdapter) MakeBids(bidReq *openrtb.BidRequest, unused *adapte
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(httpRes.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(httpRes.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("error while decoding response, err: %s", err),
 		}}
@@ -154,14 +154,14 @@ func validateImpression(imp *openrtb.Imp) (int, error) {
 
 	var bidderExt adapters.ExtImpBidder
 
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return 0, &errortypes.BadInput{
 			Message: fmt.Sprintf("ignoring imp id=%s, error while decoding extImpBidder, err: %s", imp.ID, err),
 		}
 	}
 
 	impExt := openrtb_ext.ExtImpAdtelligent{}
-	err := json.Unmarshal(bidderExt.Bidder, &impExt)
+	err := jsoniter.Unmarshal(bidderExt.Bidder, &impExt)
 	if err != nil {
 		return 0, &errortypes.BadInput{
 			Message: fmt.Sprintf("ignoring imp id=%s, error while decoding impExt, err: %s", imp.ID, err),
@@ -171,7 +171,7 @@ func validateImpression(imp *openrtb.Imp) (int, error) {
 	// common extension for all impressions
 	var impExtBuffer []byte
 
-	impExtBuffer, err = json.Marshal(&adtelligentImpExt{
+	impExtBuffer, err = jsoniter.Marshal(&adtelligentImpExt{
 		Adtelligent: impExt,
 	})
 

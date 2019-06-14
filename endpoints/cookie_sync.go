@@ -12,6 +12,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prebid/prebid-server/analytics"
 	"github.com/prebid/prebid-server/config"
@@ -78,7 +79,7 @@ func (deps *cookieSyncDeps) Endpoint(w http.ResponseWriter, r *http.Request, _ h
 	}
 
 	parsedReq := &cookieSyncRequest{}
-	if err := json.Unmarshal(bodyBytes, parsedReq); err != nil {
+	if err := jsoniter.Unmarshal(bodyBytes, parsedReq); err != nil {
 		co.Status = http.StatusBadRequest
 		co.Errors = append(co.Errors, fmt.Errorf("JSON parsing failed: %v", err))
 		http.Error(w, "JSON parsing failed: "+err.Error(), http.StatusBadRequest)

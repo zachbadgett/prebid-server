@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
@@ -101,7 +102,7 @@ func createAdformServerResponse(testData aBidInfo) ([]byte, error) {
 			CreativeId:   testData.tags[2].creativeId,
 		},
 	}
-	adformServerResponse, err := json.Marshal(bids)
+	adformServerResponse, err := jsoniter.Marshal(bids)
 	return adformServerResponse, err
 }
 
@@ -477,7 +478,7 @@ func getRegs() openrtb.Regs {
 		GDPR: &gdpr,
 	}
 	regs := openrtb.Regs{}
-	regsExtData, err := json.Marshal(regsExt)
+	regsExtData, err := jsoniter.Marshal(regsExt)
 	if err == nil {
 		regs.Ext = regsExtData
 	}
@@ -494,7 +495,7 @@ func getUserExt() []byte {
 		Consent:   "abc",
 		DigiTrust: &digitrust,
 	}
-	userExtData, err := json.Marshal(userExt)
+	userExtData, err := jsoniter.Marshal(userExt)
 	if err == nil {
 		return userExtData
 	}

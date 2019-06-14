@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/config"
@@ -234,7 +235,7 @@ func DummyPrebidCacheServer(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var put putAnyRequest
 
-	err = json.Unmarshal(body, &put)
+	err = jsoniter.Unmarshal(body, &put)
 	if err != nil {
 		http.Error(w, "Request body "+string(body)+" is not valid JSON.", http.StatusBadRequest)
 		return
@@ -264,7 +265,7 @@ func DummyPrebidCacheServer(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	b, err := json.Marshal(&resp)
+	b, err := jsoniter.Marshal(&resp)
 	if err != nil {
 		http.Error(w, "Failed to serialize UUIDs into JSON.", http.StatusInternalServerError)
 		return
@@ -558,7 +559,7 @@ func TestBidSizeValidate(t *testing.T) {
 
 	bids = checkForValidBidSize(bids, &mybidder)
 
-	testdata, _ := json.MarshalIndent(bids, "", "   ")
+	testdata, _ := jsoniter.MarshalIndent(bids, "", "   ")
 	if len(bids) != 3 {
 		t.Errorf("Detected returned bid list did not contain only 3 bid objects as expected.\nBelow is the contents of the bid list\n%v", string(testdata))
 	}
@@ -576,7 +577,7 @@ func TestWriteAuctionError(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	writeAuctionError(recorder, "some error message", nil)
 	var resp pbs.PBSResponse
-	json.Unmarshal(recorder.Body.Bytes(), &resp)
+	jsoniter.Unmarshal(recorder.Body.Bytes(), &resp)
 
 	if len(resp.Bids) != 0 {
 		t.Error("Error responses should return no bids.")

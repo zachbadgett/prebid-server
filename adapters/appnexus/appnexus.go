@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/buger/jsonparser"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/pbs"
 
 	"golang.org/x/net/context/ctxhttp"
@@ -114,7 +115,7 @@ func (a *AppNexusAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 	uri := a.URI
 	for i, unit := range bidder.AdUnits {
 		var params appnexusParams
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, err
 		}
@@ -180,10 +181,10 @@ func (a *AppNexusAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 			UsePmtRule:        params.UsePmtRule,
 			PrivateSizes:      params.PrivateSizes,
 		}}
-		anReq.Imp[i].Ext, err = json.Marshal(&impExt)
+		anReq.Imp[i].Ext, err = jsoniter.Marshal(&impExt)
 	}
 
-	reqJSON, err := json.Marshal(anReq)
+	reqJSON, err := jsoniter.Marshal(anReq)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +237,7 @@ func (a *AppNexusAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +267,7 @@ func (a *AppNexusAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 			}
 
 			var impExt appnexusBidExt
-			if err := json.Unmarshal(bid.Ext, &impExt); err == nil {
+			if err := jsoniter.Unmarshal(bid.Ext, &impExt); err == nil {
 				if mediaType, err := getMediaTypeForBid(&impExt); err == nil {
 					pbid.CreativeMediaType = string(mediaType)
 					bids = append(bids, &pbid)
@@ -327,7 +328,7 @@ func (a *AppNexusAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters
 	// Add Appnexus request level extension
 	if len(request.Ext) > 0 {
 		var reqExt appnexusReqExt
-		if err := json.Unmarshal(request.Ext, &reqExt); err == nil {
+		if err := jsoniter.Unmarshal(request.Ext, &reqExt); err == nil {
 			includeBrandCategory := reqExt.Prebid.Targeting != nil && reqExt.Prebid.Targeting.IncludeBrandCategory.PrimaryAdServer != 0
 			if includeBrandCategory {
 				if reqExt.Appnexus == nil {
@@ -335,7 +336,7 @@ func (a *AppNexusAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters
 				}
 				reqExt.Appnexus.BrandCategoryUniqueness = &includeBrandCategory
 				reqExt.Appnexus.IncludeBrandCategory = &includeBrandCategory
-				request.Ext, err = json.Marshal(reqExt)
+				request.Ext, err = jsoniter.Marshal(reqExt)
 				if err != nil {
 					errs = append(errs, err)
 					return nil, errs
@@ -371,7 +372,7 @@ func (a *AppNexusAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters
 		impsForReq := imps[startInd:endInd]
 		request.Imp = impsForReq
 
-		reqJSON, err := json.Marshal(request)
+		reqJSON, err := jsoniter.Marshal(request)
 		if err != nil {
 			errs = append(errs, err)
 			return nil, errs
@@ -402,12 +403,12 @@ func keys(m map[string]bool) []string {
 // It returns the member param, if it exists, and an error if anything went wrong during the preprocessing.
 func preprocess(imp *openrtb.Imp, defaultDisplayManagerVer string) (string, error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return "", err
 	}
 
 	var appnexusExt openrtb_ext.ExtImpAppnexus
-	if err := json.Unmarshal(bidderExt.Bidder, &appnexusExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &appnexusExt); err != nil {
 		return "", err
 	}
 
@@ -465,7 +466,7 @@ func preprocess(imp *openrtb.Imp, defaultDisplayManagerVer string) (string, erro
 		PrivateSizes:      appnexusExt.PrivateSizes,
 	}}
 	var err error
-	if imp.Ext, err = json.Marshal(&impExt); err != nil {
+	if imp.Ext, err = jsoniter.Marshal(&impExt); err != nil {
 		return appnexusExt.Member, err
 	}
 
@@ -503,7 +504,7 @@ func (a *AppNexusAdapter) MakeBids(internalRequest *openrtb.BidRequest, external
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 
@@ -514,7 +515,7 @@ func (a *AppNexusAdapter) MakeBids(internalRequest *openrtb.BidRequest, external
 		for i := 0; i < len(sb.Bid); i++ {
 			bid := sb.Bid[i]
 			var bidExt appnexusBidExt
-			if err := json.Unmarshal(bid.Ext, &bidExt); err != nil {
+			if err := jsoniter.Unmarshal(bid.Ext, &bidExt); err != nil {
 				errs = append(errs, err)
 			} else {
 				if bidType, err := getMediaTypeForBid(&bidExt); err == nil {
@@ -590,7 +591,7 @@ func NewAppNexusBidder(client *http.Client, endpoint string) *AppNexusAdapter {
 	if err == nil {
 		var adapterOptions appnexusAdapterOptions
 
-		if err := json.Unmarshal(opts, &adapterOptions); err == nil {
+		if err := jsoniter.Unmarshal(opts, &adapterOptions); err == nil {
 			catmap = adapterOptions.IabCategories
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/stored_requests"
 )
 
@@ -58,7 +59,7 @@ func (fetcher *eagerFetcher) FetchCategories(primaryAdServer, publisherId, iabCa
 
 			tmp := make(map[string]Category)
 
-			if err := json.Unmarshal(file, &tmp); err != nil {
+			if err := jsoniter.Unmarshal(file, &tmp); err != nil {
 				return "", fmt.Errorf("Unable to unmarshal categories for adserver: '%s', publisherId: '%s'", primaryAdServer, publisherId)
 			}
 			fetcher.Categories[fileName] = tmp

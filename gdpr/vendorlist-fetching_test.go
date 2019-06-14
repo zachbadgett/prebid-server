@@ -2,13 +2,13 @@ package gdpr
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/config"
 )
 
@@ -196,7 +196,7 @@ func mockVendorListData(t *testing.T, version uint16, vendors map[uint16]*purpos
 		Version: version,
 		Vendors: buildVendors(vendors),
 	}
-	data, err := json.Marshal(obj)
+	data, err := jsoniter.Marshal(obj)
 	assertNilErr(t, err)
 	return string(data)
 }

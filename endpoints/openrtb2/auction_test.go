@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/stored_requests"
 	metrics "github.com/rcrowley/go-metrics"
 
@@ -353,7 +354,7 @@ func assertResponseCode(t *testing.T, filename string, actual int, expected int,
 // buildNativeRequest JSON-encodes the nativeData as a string, and puts it into request.imp[0].native.request
 // of a request which is valid otherwise.
 func buildNativeRequest(t *testing.T, nativeData []byte) []byte {
-	serialized, err := json.Marshal(string(nativeData))
+	serialized, err := jsoniter.Marshal(string(nativeData))
 	if err != nil {
 		t.Fatalf("Failed to string-escape JSON data: %v", err)
 	}

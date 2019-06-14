@@ -15,6 +15,7 @@ import (
 	"github.com/buger/jsonparser"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mssola/user_agent"
 	"github.com/mxmCherry/openrtb"
@@ -215,7 +216,7 @@ func (deps *endpointDeps) parseRequest(httpRequest *http.Request) (req *openrtb.
 		return
 	}
 
-	if err := json.Unmarshal(requestJson, req); err != nil {
+	if err := jsoniter.Unmarshal(requestJson, req); err != nil {
 		errs = []error{err}
 		return
 	}
@@ -426,7 +427,7 @@ func fillAndValidateNative(n *openrtb.Native, impIndex int) error {
 		return fmt.Errorf("request.imp[%d].native missing required property \"request\"", impIndex)
 	}
 	var nativePayload nativeRequests.Request
-	if err := json.Unmarshal(json.RawMessage(n.Request), &nativePayload); err != nil {
+	if err := jsoniter.Unmarshal(json.RawMessage(n.Request), &nativePayload); err != nil {
 		return err
 	}
 
@@ -443,7 +444,7 @@ func fillAndValidateNative(n *openrtb.Native, impIndex int) error {
 		return err
 	}
 
-	serialized, err := json.Marshal(nativePayload)
+	serialized, err := jsoniter.Marshal(nativePayload)
 	if err != nil {
 		return err
 	}
@@ -592,7 +593,7 @@ func validateNativeEventTracker(tracker nativeRequests.EventTracker, impIndex in
 
 func validateNativeAssetImg(image *nativeRequests.Image, impIndex int, assetIndex int) error {
 	// Note that w, wmin, h, and hmin cannot be negative because these variables use unsigned ints.
-	// Those fail during the standard json.Unmarshal() call.
+	// Those fail during the standard jsoniter.Unmarshal() call.
 	if image.W == 0 && image.WMin == 0 {
 		return fmt.Errorf(`request.imp[%d].native.request.assets[%d].img must contain at least one of "w" or "wmin"`, impIndex, assetIndex)
 	}
@@ -685,7 +686,7 @@ func (deps *endpointDeps) validateImpExt(imp *openrtb.Imp, aliases map[string]st
 	}
 
 	var bidderExts map[string]json.RawMessage
-	if err := json.Unmarshal(imp.Ext, &bidderExts); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExts); err != nil {
 		return []error{err}
 	}
 
@@ -696,7 +697,7 @@ func (deps *endpointDeps) validateImpExt(imp *openrtb.Imp, aliases map[string]st
 	// https://github.com/prebid/prebid-server/pull/846#issuecomment-476352224
 	if rawPrebidExt, ok := bidderExts["prebid"]; ok {
 		var prebidExt openrtb_ext.ExtImpPrebid
-		if err := json.Unmarshal(rawPrebidExt, &prebidExt); err == nil && prebidExt.Bidder != nil {
+		if err := jsoniter.Unmarshal(rawPrebidExt, &prebidExt); err == nil && prebidExt.Bidder != nil {
 			for bidder, ext := range prebidExt.Bidder {
 				if ext == nil {
 					continue
@@ -735,7 +736,7 @@ func (deps *endpointDeps) validateImpExt(imp *openrtb.Imp, aliases map[string]st
 		for _, bidder := range disabledBidders {
 			delete(bidderExts, bidder)
 		}
-		extJSON, err := json.Marshal(bidderExts)
+		extJSON, err := jsoniter.Marshal(bidderExts)
 		if err != nil {
 			return []error{err}
 		}
@@ -756,7 +757,7 @@ func (deps *endpointDeps) parseBidExt(ext json.RawMessage) (*openrtb_ext.ExtRequ
 		return nil, nil
 	}
 	var tmpExt openrtb_ext.ExtRequest
-	if err := json.Unmarshal(ext, &tmpExt); err != nil {
+	if err := jsoniter.Unmarshal(ext, &tmpExt); err != nil {
 		return nil, fmt.Errorf("request.ext is invalid: %v", err)
 	}
 	return &tmpExt, nil
@@ -784,7 +785,7 @@ func (deps *endpointDeps) validateSite(site *openrtb.Site) error {
 	}
 	if len(site.Ext) > 0 {
 		var s openrtb_ext.ExtSite
-		if err := json.Unmarshal(site.Ext, &s); err != nil {
+		if err := jsoniter.Unmarshal(site.Ext, &s); err != nil {
 			return err
 		}
 	}
@@ -799,7 +800,7 @@ func (deps *endpointDeps) validateApp(app *openrtb.App) error {
 
 	if len(app.Ext) > 0 {
 		var a openrtb_ext.ExtApp
-		if err := json.Unmarshal(app.Ext, &a); err != nil {
+		if err := jsoniter.Unmarshal(app.Ext, &a); err != nil {
 			return err
 		}
 	}
@@ -812,7 +813,7 @@ func validateUser(user *openrtb.User, aliases map[string]string) error {
 	if user != nil && user.Ext != nil {
 		// Creating ExtUser object to check if DigiTrust is valid
 		var userExt openrtb_ext.ExtUser
-		if err := json.Unmarshal(user.Ext, &userExt); err == nil {
+		if err := jsoniter.Unmarshal(user.Ext, &userExt); err == nil {
 			if userExt.DigiTrust != nil && userExt.DigiTrust.Pref != 0 {
 				// DigiTrust is not valid. Return error.
 				return errors.New("request.user contains a digitrust object that is not valid.")
@@ -856,7 +857,7 @@ func validateUser(user *openrtb.User, aliases map[string]string) error {
 func validateRegs(regs *openrtb.Regs) error {
 	if regs != nil && len(regs.Ext) > 0 {
 		var regsExt openrtb_ext.ExtRegs
-		if err := json.Unmarshal(regs.Ext, &regsExt); err != nil {
+		if err := jsoniter.Unmarshal(regs.Ext, &regsExt); err != nil {
 			return fmt.Errorf("request.regs.ext is invalid: %v", err)
 		}
 		if regsExt.GDPR != nil && (*regsExt.GDPR < 0 || *regsExt.GDPR > 1) {
@@ -943,7 +944,7 @@ func getJsonSyntaxError(testJSON []byte) (bool, string) {
 	}
 	type jNode map[string]*JsonNode
 	docErrdoc := &jNode{}
-	docErr := json.Unmarshal(testJSON, docErrdoc)
+	docErr := jsoniter.Unmarshal(testJSON, docErrdoc)
 	if uerror, ok := docErr.(*json.SyntaxError); ok {
 		err := fmt.Sprintf("%s at offset %v", uerror.Error(), uerror.Offset)
 		return true, err
@@ -1029,7 +1030,7 @@ func (deps *endpointDeps) processStoredRequests(ctx context.Context, requestJson
 		imps[idIndices[i]] = resolvedImp
 	}
 	if len(impIds) > 0 {
-		newImpJson, err := json.Marshal(imps)
+		newImpJson, err := jsoniter.Marshal(imps)
 		if err != nil {
 			return nil, []error{err}
 		}

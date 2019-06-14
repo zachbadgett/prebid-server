@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
@@ -44,7 +45,7 @@ func DummyPubMaticServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var breq openrtb.BidRequest
-	err = json.Unmarshal(body, &breq)
+	err = jsoniter.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -79,7 +80,7 @@ func DummyPubMaticServer(w http.ResponseWriter, r *http.Request) {
 	}
 	resp.SeatBid[0].Bid = bids
 
-	js, err := json.Marshal(resp)
+	js, err := jsoniter.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

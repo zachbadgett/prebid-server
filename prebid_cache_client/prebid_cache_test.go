@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"fmt"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 var delay time.Duration
@@ -36,7 +38,7 @@ func DummyPrebidCacheServer(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var put putAnyRequest
 
-	err = json.Unmarshal(body, &put)
+	err = jsoniter.Unmarshal(body, &put)
 	if err != nil {
 		http.Error(w, "Request body "+string(body)+" is not valid JSON.", http.StatusBadRequest)
 		return
@@ -66,7 +68,7 @@ func DummyPrebidCacheServer(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bytes, err := json.Marshal(&resp)
+	bytes, err := jsoniter.Marshal(&resp)
 	if err != nil {
 		http.Error(w, "Failed to serialize UUIDs into JSON.", http.StatusInternalServerError)
 		return

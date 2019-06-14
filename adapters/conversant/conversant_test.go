@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/cache/dummycache"
@@ -652,7 +653,7 @@ func ConvertToVideoRequest(req *pbs.PBSRequest, videoParams ...string) (*pbs.PBS
 	for i := 0; i < len(req.AdUnits); i++ {
 		video := pbs.PBSVideo{}
 		if i < len(videoParams) {
-			err := json.Unmarshal([]byte(videoParams[i]), &video)
+			err := jsoniter.Unmarshal([]byte(videoParams[i]), &video)
 			if err != nil {
 				return nil, err
 			}
@@ -672,7 +673,7 @@ func ConvertToVideoRequest(req *pbs.PBSRequest, videoParams ...string) (*pbs.PBS
 // Convert a request to an app request by adding required properties
 func ConvertToAppRequest(req *pbs.PBSRequest, appParams string) (*pbs.PBSRequest, error) {
 	app := new(openrtb.App)
-	err := json.Unmarshal([]byte(appParams), &app)
+	err := jsoniter.Unmarshal([]byte(appParams), &app)
 	if err == nil {
 		req.App = app
 	}
@@ -742,7 +743,7 @@ func CreateServer(prices ...float64) (*httptest.Server, *openrtb.BidRequest) {
 		var bids []openrtb.Bid
 		var bid openrtb.Bid
 
-		err = json.Unmarshal(body, &bidReq)
+		err = jsoniter.Unmarshal(body, &bidReq)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -787,7 +788,7 @@ func CreateServer(prices ...float64) (*httptest.Server, *openrtb.BidRequest) {
 		if len(bids) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
-			js, _ := json.Marshal(openrtb.BidResponse{
+			js, _ := jsoniter.Marshal(openrtb.BidResponse{
 				ID: bidReq.ID,
 				SeatBid: []openrtb.SeatBid{
 					{

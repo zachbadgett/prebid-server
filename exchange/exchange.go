@@ -11,6 +11,7 @@ import (
 	"sort"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/stored_requests"
 
 	"github.com/golang/glog"
@@ -78,7 +79,7 @@ func (e *exchange) HoldAuction(ctx context.Context, bidRequest *openrtb.BidReque
 	// Snapshot of resolved Bid request for debug if test request
 	var resolvedRequest json.RawMessage
 	if bidRequest.Test == 1 {
-		if r, err := json.Marshal(bidRequest); err != nil {
+		if r, err := jsoniter.Marshal(bidRequest); err != nil {
 			glog.Errorf("Error marshalling Bid request for debug: %v", err)
 		} else {
 			resolvedRequest = r
@@ -105,7 +106,7 @@ func (e *exchange) HoldAuction(ctx context.Context, bidRequest *openrtb.BidReque
 	var bidAdjustmentFactors map[string]float64
 	var requestExt openrtb_ext.ExtRequest
 	if len(bidRequest.Ext) > 0 {
-		err := json.Unmarshal(bidRequest.Ext, &requestExt)
+		err := jsoniter.Unmarshal(bidRequest.Ext, &requestExt)
 		if err != nil {
 			return nil, fmt.Errorf("Error decoding Request.Ext : %s", err.Error())
 		}
@@ -487,7 +488,7 @@ func (e *exchange) makeExtBidResponse(adapterBids map[openrtb_ext.BidderName]*PB
 		bidResponseExt.Debug = &openrtb_ext.ExtResponseDebug{
 			HttpCalls: make(map[openrtb_ext.BidderName][]*openrtb_ext.ExtHttpCall),
 		}
-		if err := json.Unmarshal(resolvedRequest, &bidResponseExt.Debug.ResolvedRequest); err != nil {
+		if err := jsoniter.Unmarshal(resolvedRequest, &bidResponseExt.Debug.ResolvedRequest); err != nil {
 			glog.Errorf("Error unmarshalling Bid request snapshot: %v", err)
 		}
 	}
@@ -526,7 +527,7 @@ func (e *exchange) makeSeatBid(adapterBid *PBSOrtbSeatBid, adapter openrtb_ext.B
 			Bidder: adapterBid.Ext,
 		}
 
-		ext, err := json.Marshal(sbExt)
+		ext, err := jsoniter.Marshal(sbExt)
 		if err != nil {
 			extError := openrtb_ext.ExtBidderError{
 				Code:    errortypes.DecodeError(err),
@@ -560,7 +561,7 @@ func (e *exchange) makeBid(Bids []*PBSOrtbBid, adapter openrtb_ext.BidderName) (
 			},
 		}
 
-		ext, err := json.Marshal(bidExt)
+		ext, err := jsoniter.Marshal(bidExt)
 		if err != nil {
 			errList = append(errList, err)
 		} else {

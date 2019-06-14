@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/prebid/prebid-server/pbs"
 
@@ -282,7 +283,7 @@ func (a *RubiconAdapter) callOne(ctx context.Context, reqJSON bytes.Buffer) (res
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		err = &errortypes.BadServerResponse{
 			Message: err.Error(),
@@ -311,7 +312,7 @@ func (a *RubiconAdapter) callOne(ctx context.Context, reqJSON bytes.Buffer) (res
 	// Pull out any server-side determined targeting
 	var rpExtTrg rubiconTargetingExt
 
-	if err := json.Unmarshal([]byte(bid.Ext), &rpExtTrg); err == nil {
+	if err := jsoniter.Unmarshal([]byte(bid.Ext), &rpExtTrg); err == nil {
 		// Converting string => array(string) to string => string
 		targeting := make(map[string]string)
 
@@ -353,7 +354,7 @@ func (a *RubiconAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *
 
 		// Amend it with RP-specific information
 		var params rubiconParams
-		err = json.Unmarshal(unit.Params, &params)
+		err = jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, &errortypes.BadInput{
 				Message: err.Error(),
@@ -370,7 +371,7 @@ func (a *RubiconAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *
 			Target: params.Inventory,
 			Track:  track,
 		}}
-		thisImp.Ext, err = json.Marshal(&impExt)
+		thisImp.Ext, err = jsoniter.Marshal(&impExt)
 		if err != nil {
 			continue
 		}
@@ -379,37 +380,37 @@ func (a *RubiconAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *
 		// Copy avoids race condition since it points to ref & shared with other adapters
 		userCopy := *rubiReq.User
 		userExt := rubiconUserExt{RP: rubiconUserExtRP{Target: params.Visitor}}
-		userCopy.Ext, err = json.Marshal(&userExt)
+		userCopy.Ext, err = jsoniter.Marshal(&userExt)
 		// Assign back our copy
 		rubiReq.User = &userCopy
 
 		deviceCopy := *rubiReq.Device
 		deviceExt := rubiconDeviceExt{RP: rubiconDeviceExtRP{PixelRatio: rubiReq.Device.PxRatio}}
-		deviceCopy.Ext, err = json.Marshal(&deviceExt)
+		deviceCopy.Ext, err = jsoniter.Marshal(&deviceExt)
 		rubiReq.Device = &deviceCopy
 
 		if thisImp.Video != nil {
 			videoExt := rubiconVideoExt{Skip: params.Video.Skip, SkipDelay: params.Video.SkipDelay, RP: rubiconVideoExtRP{SizeID: params.Video.VideoSizeID}}
-			thisImp.Video.Ext, err = json.Marshal(&videoExt)
+			thisImp.Video.Ext, err = jsoniter.Marshal(&videoExt)
 		} else {
 			primarySizeID, altSizeIDs, err := parseRubiconSizes(unit.Sizes)
 			if err != nil {
 				continue
 			}
 			bannerExt := rubiconBannerExt{RP: rubiconBannerExtRP{SizeID: primarySizeID, AltSizeIDs: altSizeIDs, MIME: "text/html"}}
-			thisImp.Banner.Ext, err = json.Marshal(&bannerExt)
+			thisImp.Banner.Ext, err = jsoniter.Marshal(&bannerExt)
 		}
 
 		siteExt := rubiconSiteExt{RP: rubiconSiteExtRP{SiteID: params.SiteId}}
 		pubExt := rubiconPubExt{RP: rubiconPubExtRP{AccountID: params.AccountId}}
 		var rubiconUser rubiconUser
-		err = json.Unmarshal(req.PBSUser, &rubiconUser)
+		err = jsoniter.Unmarshal(req.PBSUser, &rubiconUser)
 
 		if rubiReq.Site != nil {
 			siteCopy := *rubiReq.Site
-			siteCopy.Ext, err = json.Marshal(&siteExt)
+			siteCopy.Ext, err = jsoniter.Marshal(&siteExt)
 			siteCopy.Publisher = &openrtb.Publisher{}
-			siteCopy.Publisher.Ext, err = json.Marshal(&pubExt)
+			siteCopy.Publisher.Ext, err = jsoniter.Marshal(&pubExt)
 			siteCopy.Content = &openrtb.Content{}
 			siteCopy.Content.Language = rubiconUser.Language
 			rubiReq.Site = &siteCopy
@@ -422,9 +423,9 @@ func (a *RubiconAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *
 
 		if rubiReq.App != nil {
 			appCopy := *rubiReq.App
-			appCopy.Ext, err = json.Marshal(&siteExt)
+			appCopy.Ext, err = jsoniter.Marshal(&siteExt)
 			appCopy.Publisher = &openrtb.Publisher{}
-			appCopy.Publisher.Ext, err = json.Marshal(&pubExt)
+			appCopy.Publisher.Ext, err = jsoniter.Marshal(&pubExt)
 			rubiReq.App = &appCopy
 		}
 
@@ -550,7 +551,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 		thisImp := requestImpCopy[i]
 
 		var bidderExt adapters.ExtImpBidder
-		if err = json.Unmarshal(thisImp.Ext, &bidderExt); err != nil {
+		if err = jsoniter.Unmarshal(thisImp.Ext, &bidderExt); err != nil {
 			errs = append(errs, &errortypes.BadInput{
 				Message: err.Error(),
 			})
@@ -558,7 +559,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 		}
 
 		var rubiconExt openrtb_ext.ExtImpRubicon
-		if err = json.Unmarshal(bidderExt.Bidder, &rubiconExt); err != nil {
+		if err = jsoniter.Unmarshal(bidderExt.Bidder, &rubiconExt); err != nil {
 			errs = append(errs, &errortypes.BadInput{
 				Message: err.Error(),
 			})
@@ -572,7 +573,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 				Track:  rubiconImpExtRPTrack{Mint: "", MintVersion: ""},
 			},
 		}
-		thisImp.Ext, err = json.Marshal(&impExt)
+		thisImp.Ext, err = jsoniter.Marshal(&impExt)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -584,7 +585,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 
 			if request.User.Ext != nil {
 				var userExt *openrtb_ext.ExtUser
-				if err = json.Unmarshal(userCopy.Ext, &userExt); err != nil {
+				if err = jsoniter.Unmarshal(userCopy.Ext, &userExt); err != nil {
 					errs = append(errs, &errortypes.BadInput{
 						Message: err.Error(),
 					})
@@ -597,7 +598,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 				userExtRP.TpID = userExt.TpID
 			}
 
-			userCopy.Ext, err = json.Marshal(&userExtRP)
+			userCopy.Ext, err = jsoniter.Marshal(&userExtRP)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -608,14 +609,14 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 		if request.Device != nil {
 			deviceCopy := *request.Device
 			deviceExt := rubiconDeviceExt{RP: rubiconDeviceExtRP{PixelRatio: request.Device.PxRatio}}
-			deviceCopy.Ext, err = json.Marshal(&deviceExt)
+			deviceCopy.Ext, err = jsoniter.Marshal(&deviceExt)
 			request.Device = &deviceCopy
 		}
 
 		if thisImp.Video != nil {
 			videoCopy := *thisImp.Video
 			videoExt := rubiconVideoExt{Skip: rubiconExt.Video.Skip, SkipDelay: rubiconExt.Video.SkipDelay, RP: rubiconVideoExtRP{SizeID: rubiconExt.Video.VideoSizeID}}
-			videoCopy.Ext, err = json.Marshal(&videoExt)
+			videoCopy.Ext, err = jsoniter.Marshal(&videoExt)
 			thisImp.Video = &videoCopy
 		} else {
 			primarySizeID, altSizeIDs, err := parseRubiconSizes(thisImp.Banner.Format)
@@ -625,7 +626,7 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 			}
 			bannerExt := rubiconBannerExt{RP: rubiconBannerExtRP{SizeID: primarySizeID, AltSizeIDs: altSizeIDs, MIME: "text/html"}}
 			bannerCopy := *thisImp.Banner
-			bannerCopy.Ext, err = json.Marshal(&bannerExt)
+			bannerCopy.Ext, err = jsoniter.Marshal(&bannerExt)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -638,23 +639,23 @@ func (a *RubiconAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 
 		if request.Site != nil {
 			siteCopy := *request.Site
-			siteCopy.Ext, err = json.Marshal(&siteExt)
+			siteCopy.Ext, err = jsoniter.Marshal(&siteExt)
 			siteCopy.Publisher = &openrtb.Publisher{}
-			siteCopy.Publisher.Ext, err = json.Marshal(&pubExt)
+			siteCopy.Publisher.Ext, err = jsoniter.Marshal(&pubExt)
 			request.Site = &siteCopy
 		}
 		if request.App != nil {
 			appCopy := *request.App
-			appCopy.Ext, err = json.Marshal(&siteExt)
+			appCopy.Ext, err = jsoniter.Marshal(&siteExt)
 			appCopy.Publisher = &openrtb.Publisher{}
-			appCopy.Publisher.Ext, err = json.Marshal(&pubExt)
+			appCopy.Publisher.Ext, err = jsoniter.Marshal(&pubExt)
 			request.App = &appCopy
 		}
 
 		request.Imp = []openrtb.Imp{thisImp}
 		request.Cur = nil
 
-		reqJSON, err := json.Marshal(request)
+		reqJSON, err := jsoniter.Marshal(request)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -691,14 +692,14 @@ func (a *RubiconAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalR
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: err.Error(),
 		}}
 	}
 
 	var bidReq openrtb.BidRequest
-	if err := json.Unmarshal(externalRequest.Body, &bidReq); err != nil {
+	if err := jsoniter.Unmarshal(externalRequest.Body, &bidReq); err != nil {
 		return nil, []error{err}
 	}
 

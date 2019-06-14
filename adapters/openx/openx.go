@@ -1,10 +1,10 @@
 package openx
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -85,13 +85,13 @@ func (a *OpenxAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Reque
 	request.Imp = validImps
 
 	var err error
-	request.Ext, err = json.Marshal(reqExt)
+	request.Ext, err = jsoniter.Marshal(reqExt)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -111,14 +111,14 @@ func (a *OpenxAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Reque
 // Mutate the imp to get it ready to send to openx.
 func preprocess(imp *openrtb.Imp, reqExt *openxReqExt) error {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return &errortypes.BadInput{
 			Message: err.Error(),
 		}
 	}
 
 	var openxExt openrtb_ext.ExtImpOpenx
-	if err := json.Unmarshal(bidderExt.Bidder, &openxExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &openxExt); err != nil {
 		return &errortypes.BadInput{
 			Message: err.Error(),
 		}
@@ -135,7 +135,7 @@ func preprocess(imp *openrtb.Imp, reqExt *openxReqExt) error {
 			CustomParams: openxExt.CustomParams,
 		}
 		var err error
-		if imp.Ext, err = json.Marshal(impExt); err != nil {
+		if imp.Ext, err = jsoniter.Marshal(impExt); err != nil {
 			return &errortypes.BadInput{
 				Message: err.Error(),
 			}
@@ -163,7 +163,7 @@ func (a *OpenxAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalReq
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -54,7 +55,7 @@ func DummyLifestreetServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var breq openrtb.BidRequest
-	err = json.Unmarshal(body, &breq)
+	err = jsoniter.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,7 +139,7 @@ func DummyLifestreetServer(w http.ResponseWriter, r *http.Request) {
 		<-time.After(lsdata.delay)
 	}
 
-	js, err := json.Marshal(resp)
+	js, err := jsoniter.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

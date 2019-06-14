@@ -1,11 +1,11 @@
 package endpoints
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/currencies"
 )
 
@@ -61,7 +61,7 @@ func NewCurrencyRatesEndpoint(rateConverter rateConverter) func(w http.ResponseW
 	currencyRateInfo := newCurrencyRatesInfo(rateConverter)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonOutput, err := json.Marshal(currencyRateInfo)
+		jsonOutput, err := jsoniter.Marshal(currencyRateInfo)
 		if err != nil {
 			glog.Errorf("/currency/rates Critical error when trying to marshal currencyRateInfo: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)

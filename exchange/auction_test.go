@@ -2,13 +2,13 @@ package exchange
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
 	"github.com/prebid/prebid-server/prebid_cache_client"
@@ -87,7 +87,7 @@ func loadCacheSpec(filename string) (*cacheSpec, error) {
 	}
 
 	var spec cacheSpec
-	if err := json.Unmarshal(specData, &spec); err != nil {
+	if err := jsoniter.Unmarshal(specData, &spec); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal JSON from file: %v", err)
 	}
 
@@ -118,7 +118,7 @@ func runCacheSpec(t *testing.T, fileDisplayName string, specData *cacheSpec, bid
 		}
 		roundedPrices[bid] = strconv.FormatFloat(bid.Bid.Price, 'f', 2, 64)
 		// Marshal the Bid for the expected cacheables
-		cjson, _ := json.Marshal(bid.Bid)
+		cjson, _ := jsoniter.Marshal(bid.Bid)
 		specData.ExpectedCacheables[i].Data = cjson
 	}
 	ctx := context.Background()

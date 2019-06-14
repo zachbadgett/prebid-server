@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -95,7 +96,7 @@ func (a *FacebookAdapter) callOne(ctx context.Context, reqJSON bytes.Buffer) (re
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		err = &errortypes.BadServerResponse{
 			Message: err.Error(),
@@ -175,7 +176,7 @@ func (a *FacebookAdapter) GenerateRequestsForFacebook(req *pbs.PBSRequest, bidde
 	reqIndex := 0
 	for i, unit := range bidder.AdUnits {
 		var params facebookParams
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, err
 		}

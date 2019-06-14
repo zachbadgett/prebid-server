@@ -1,9 +1,10 @@
 package sonobi
 
 import (
+	"text/template"
+
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/usersync"
-	"text/template"
 )
 
 func NewSonobiSyncer(temp *template.Template) usersync.Usersyncer {

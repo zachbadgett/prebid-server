@@ -1,13 +1,14 @@
 package gumgum
 
 import (
-	"encoding/json"
 	"fmt"
+	"net/http"
+
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
-	"net/http"
 )
 
 type GumGumAdapter struct {
@@ -53,7 +54,7 @@ func (g *GumGumAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.R
 		request.Site = &siteCopy
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -87,7 +88,7 @@ func (g *GumGumAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRe
 		}}
 	}
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("Bad server response: %d. ", err),
 		}}
@@ -109,7 +110,7 @@ func (g *GumGumAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRe
 
 func preprocess(imp *openrtb.Imp) (string, error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		err = &errortypes.BadInput{
 			Message: err.Error(),
 		}
@@ -117,7 +118,7 @@ func preprocess(imp *openrtb.Imp) (string, error) {
 	}
 
 	var gumgumExt openrtb_ext.ExtImpGumGum
-	if err := json.Unmarshal(bidderExt.Bidder, &gumgumExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &gumgumExt); err != nil {
 		err = &errortypes.BadInput{
 			Message: err.Error(),
 		}

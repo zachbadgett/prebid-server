@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 func TestSingleReq(t *testing.T) {
@@ -165,7 +167,7 @@ func newHandler(t *testing.T, expectReqIDs []string, expectImpIDs []string, json
 			Imps:     impIDResponse,
 		}
 
-		if respBytes, err := json.Marshal(respObj); err != nil {
+		if respBytes, err := jsoniter.Marshal(respObj); err != nil {
 			t.Errorf("failed to marshal responseContract in test:  %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 		} else {
@@ -226,7 +228,7 @@ func richSplit(queryVal string) []string {
 }
 
 func jsonifyID(id string) json.RawMessage {
-	if b, err := json.Marshal(id); err != nil {
+	if b, err := jsoniter.Marshal(id); err != nil {
 		return json.RawMessage([]byte("\"error encoding ID=" + id + "\""))
 	} else {
 		return json.RawMessage(b)

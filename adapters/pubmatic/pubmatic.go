@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -84,7 +85,7 @@ func (a *PubmaticAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 
 	for i, unit := range bidder.AdUnits {
 		var params pubmaticParams
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			errState = append(errState, fmt.Sprintf("BidID:%s;Error:%s;param:%s", unit.BidID, INVALID_PARAMS, unit.Params))
 			logf(PrepareLogMessage(pbReq.ID, params.PublisherId, unit.Code, unit.BidID,
@@ -110,7 +111,7 @@ func (a *PubmaticAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 		// Parse Wrapper Extension i.e. ProfileID and VersionID only once per request
 		if wrapExt == "" && len(params.WrapExt) != 0 {
 			var wrapExtMap map[string]int
-			err := json.Unmarshal([]byte(params.WrapExt), &wrapExtMap)
+			err := jsoniter.Unmarshal([]byte(params.WrapExt), &wrapExtMap)
 			if err != nil {
 				errState = append(errState, fmt.Sprintf("BidID:%s;Error:%s;param:%s", unit.BidID, INVALID_WRAPEXT, unit.Params))
 				logf(PrepareLogMessage(pbReq.ID, params.PublisherId, unit.Code, unit.BidID,
@@ -201,7 +202,7 @@ func (a *PubmaticAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 		pbReq.Ext = json.RawMessage(rawExt)
 	}
 
-	reqJSON, err := json.Marshal(pbReq)
+	reqJSON, err := jsoniter.Marshal(pbReq)
 
 	debug := &pbs.BidderDebug{
 		RequestURI: a.URI,
@@ -255,7 +256,7 @@ func (a *PubmaticAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder 
 	}
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return nil, &errortypes.BadServerResponse{
 			Message: fmt.Sprintf("HTTP status: %d", pbResp.StatusCode),
@@ -351,7 +352,7 @@ func (a *PubmaticAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters
 		return nil, errs
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -380,12 +381,12 @@ func parseImpressionObject(imp *openrtb.Imp, wrapExt *string, pubID *string) err
 	}
 
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return err
 	}
 
 	var pubmaticExt openrtb_ext.ExtImpPubmatic
-	if err := json.Unmarshal(bidderExt.Bidder, &pubmaticExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &pubmaticExt); err != nil {
 		return err
 	}
 
@@ -396,7 +397,7 @@ func parseImpressionObject(imp *openrtb.Imp, wrapExt *string, pubID *string) err
 	// Parse Wrapper Extension only once per request
 	if *wrapExt == "" && len(pubmaticExt.WrapExt) != 0 {
 		var wrapExtMap map[string]int
-		err := json.Unmarshal([]byte(pubmaticExt.WrapExt), &wrapExtMap)
+		err := jsoniter.Unmarshal([]byte(pubmaticExt.WrapExt), &wrapExtMap)
 		if err != nil {
 			return fmt.Errorf("Error in Wrapper Parameters = %v  for ImpID = %v WrapperExt = %v", err.Error(), imp.ID, string(pubmaticExt.WrapExt))
 		}
@@ -495,7 +496,7 @@ func (a *PubmaticAdapter) MakeBids(internalRequest *openrtb.BidRequest, external
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

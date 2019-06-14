@@ -1,8 +1,9 @@
 package openrtb_ext
 
 import (
-	"encoding/json"
 	"errors"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // ExtRequest defines the contract for bidrequest.ext
@@ -29,7 +30,7 @@ type ExtRequestPrebidCache struct {
 func (ert *ExtRequestPrebidCache) UnmarshalJSON(b []byte) error {
 	type typesAlias ExtRequestPrebidCache // Prevents infinite UnmarshalJSON loops
 	var proxy typesAlias
-	if err := json.Unmarshal(b, &proxy); err != nil {
+	if err := jsoniter.Unmarshal(b, &proxy); err != nil {
 		return err
 	}
 
@@ -75,7 +76,7 @@ func (ert *ExtRequestTargeting) UnmarshalJSON(b []byte) error {
 		IncludeBidderKeys: true,
 	}
 
-	err := json.Unmarshal(b, defaults)
+	err := jsoniter.Unmarshal(b, defaults)
 	if err == nil {
 		if !defaults.IncludeWinners && !defaults.IncludeBidderKeys {
 			return errors.New("ext.prebid.targeting: At least one of includewinners or includebidderkeys must be enabled to enable targeting support")
@@ -110,7 +111,7 @@ func (pg *PriceGranularity) UnmarshalJSON(b []byte) error {
 	}
 	// First check for legacy strings
 	var pgString string
-	err := json.Unmarshal(b, &pgString)
+	err := jsoniter.Unmarshal(b, &pgString)
 	if err == nil {
 		*pg = PriceGranularityFromString(pgString)
 		if len(pg.Ranges) > 0 {
@@ -122,7 +123,7 @@ func (pg *PriceGranularity) UnmarshalJSON(b []byte) error {
 	// Not legacy, so we do a normal Unmarshal
 	pgraw := PriceGranularityRaw{}
 	pgraw.Precision = 2
-	err = json.Unmarshal(b, &pgraw)
+	err = jsoniter.Unmarshal(b, &pgraw)
 	if err != nil {
 		return err
 	}

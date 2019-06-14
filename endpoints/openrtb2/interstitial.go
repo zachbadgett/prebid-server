@@ -1,9 +1,9 @@
 package openrtb2
 
 import (
-	"encoding/json"
 	"fmt"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/errortypes"
@@ -20,7 +20,7 @@ func processInterstitials(req *openrtb.BidRequest) error {
 					// No special interstitial support requested, so bail as there is nothing to do
 					return nil
 				}
-				err := json.Unmarshal(req.Device.Ext, &devExt)
+				err := jsoniter.Unmarshal(req.Device.Ext, &devExt)
 				if err != nil {
 					return err
 				}

@@ -3,11 +3,11 @@ package ix
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/openrtb_ext"
 
 	"github.com/prebid/prebid-server/pbs"
@@ -85,7 +85,7 @@ func (a *IxAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pbs.P
 		}
 
 		var params indexParams
-		err := json.Unmarshal(unit.Params, &params)
+		err := jsoniter.Unmarshal(unit.Params, &params)
 		if err != nil {
 			return nil, &errortypes.BadInput{
 				Message: fmt.Sprintf("unmarshal params '%s' failed: %v", unit.Params, err),
@@ -119,7 +119,7 @@ func (a *IxAdapter) Call(ctx context.Context, req *pbs.PBSRequest, bidder *pbs.P
 
 			// spec also asks for publisher id if set
 			// ext object on request for prefetch
-			j, _ := json.Marshal(indexReq)
+			j, _ := jsoniter.Marshal(indexReq)
 
 			request := callOneObject{requestJSON: *bytes.NewBuffer(j), width: format.W, height: format.H}
 
@@ -232,7 +232,7 @@ func (a *IxAdapter) callOne(ctx context.Context, reqJSON bytes.Buffer) (ixBidRes
 	result.ResponseBody = string(body)
 
 	var bidResp openrtb.BidResponse
-	err = json.Unmarshal(body, &bidResp)
+	err = jsoniter.Unmarshal(body, &bidResp)
 	if err != nil {
 		return result, &errortypes.BadServerResponse{
 			Message: fmt.Sprintf("Error parsing response: %v", err),

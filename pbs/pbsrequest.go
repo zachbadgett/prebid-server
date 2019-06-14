@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/cache"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/prebid"
@@ -183,7 +184,7 @@ func ConfigGet(cache cache.Cache, id string) ([]Bids, error) {
 	}
 
 	bids := make([]Bids, 0)
-	err = json.Unmarshal([]byte(conf), &bids)
+	err = jsoniter.Unmarshal([]byte(conf), &bids)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +249,7 @@ func ParsePBSRequest(r *http.Request, cfg *config.AuctionTimeouts, cache cache.C
 	v2, err := semver.Make("0.0.2")
 	if v1.Compare(v2) >= 0 {
 		if pbsReq.PBSUser != nil {
-			err = json.Unmarshal([]byte(pbsReq.PBSUser), &pbsReq.User)
+			err = jsoniter.Unmarshal([]byte(pbsReq.PBSUser), &pbsReq.User)
 			if err != nil {
 				return nil, err
 			}
@@ -356,7 +357,7 @@ func (req PBSRequest) Elapsed() int {
 }
 
 func (p PBSRequest) String() string {
-	b, _ := json.MarshalIndent(p, "", "    ")
+	b, _ := jsoniter.MarshalIndent(p, "", "    ")
 	return string(b)
 }
 

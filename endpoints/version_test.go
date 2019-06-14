@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 func TestVersion(t *testing.T) {
@@ -34,7 +36,7 @@ func TestVersion(t *testing.T) {
 			t.Errorf("Bad response body. Expected: %s, got an error %s", tc.expected, err)
 		}
 
-		err = json.Unmarshal([]byte(tc.expected), &expected)
+		err = jsoniter.Unmarshal([]byte(tc.expected), &expected)
 		if err != nil {
 			t.Errorf("Error while trying to unmarshal expected result JSON")
 		}

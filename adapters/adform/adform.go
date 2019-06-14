@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -167,7 +168,7 @@ func pbsRequestToAdformRequest(a *AdformAdapter, request *pbs.PBSRequest, bidder
 	adUnits := make([]*adformAdUnit, 0, len(bidder.AdUnits))
 	for _, adUnit := range bidder.AdUnits {
 		var adformAdUnit adformAdUnit
-		if err := json.Unmarshal(adUnit.Params, &adformAdUnit); err != nil {
+		if err := jsoniter.Unmarshal(adUnit.Params, &adformAdUnit); err != nil {
 			return nil, err
 		}
 		mid, err := adformAdUnit.MasterTagId.Int64()
@@ -196,7 +197,7 @@ func pbsRequestToAdformRequest(a *AdformAdapter, request *pbs.PBSRequest, bidder
 	var digitrustData *openrtb_ext.ExtUserDigiTrust
 	if request.User != nil {
 		var extUser *openrtb_ext.ExtUser
-		if err := json.Unmarshal(request.User.Ext, &extUser); err == nil {
+		if err := jsoniter.Unmarshal(request.User.Ext, &extUser); err == nil {
 			digitrustData = extUser.DigiTrust
 		}
 	}
@@ -332,7 +333,7 @@ func (r *adformRequest) buildAdformHeaders(a *AdformAdapter) http.Header {
 		cookie = append(cookie, fmt.Sprintf("uid=%s", r.userId))
 	}
 	if r.digitrust != nil {
-		if digitrustBytes, err := json.Marshal(r.digitrust); err == nil {
+		if digitrustBytes, err := jsoniter.Marshal(r.digitrust); err == nil {
 			digitrust := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(digitrustBytes)
 			// Cookie name and structure are described here: https://github.com/digi-trust/dt-cdn/wiki/Cookies-for-Platforms
 			cookie = append(cookie, fmt.Sprintf("DigiTrust.v1.identity=%s", digitrust))
@@ -345,7 +346,7 @@ func (r *adformRequest) buildAdformHeaders(a *AdformAdapter) http.Header {
 
 func parseAdformBids(response []byte) ([]*adformBid, error) {
 	var bids []*adformBid
-	if err := json.Unmarshal(response, &bids); err != nil {
+	if err := jsoniter.Unmarshal(response, &bids); err != nil {
 		return nil, &errortypes.BadServerResponse{
 			Message: err.Error(),
 		}
@@ -402,7 +403,7 @@ func openRtbToAdformRequest(request *openrtb.BidRequest) (*adformRequest, []erro
 			continue
 		}
 		var adformAdUnit adformAdUnit
-		if err := json.Unmarshal(params, &adformAdUnit); err != nil {
+		if err := jsoniter.Unmarshal(params, &adformAdUnit); err != nil {
 			errors = append(errors, &errortypes.BadInput{
 				Message: err.Error(),
 			})
@@ -445,7 +446,7 @@ func openRtbToAdformRequest(request *openrtb.BidRequest) (*adformRequest, []erro
 	gdprApplies := ""
 	var extRegs openrtb_ext.ExtRegs
 	if request.Regs != nil {
-		if err := json.Unmarshal(request.Regs.Ext, &extRegs); err != nil {
+		if err := jsoniter.Unmarshal(request.Regs.Ext, &extRegs); err != nil {
 			errors = append(errors, &errortypes.BadInput{
 				Message: err.Error(),
 			})
@@ -459,7 +460,7 @@ func openRtbToAdformRequest(request *openrtb.BidRequest) (*adformRequest, []erro
 	var digitrustData *openrtb_ext.ExtUserDigiTrust
 	if request.User != nil {
 		var extUser openrtb_ext.ExtUser
-		if err := json.Unmarshal(request.User.Ext, &extUser); err == nil {
+		if err := jsoniter.Unmarshal(request.User.Ext, &extUser); err == nil {
 			consent = extUser.Consent
 			digitrustData = extUser.DigiTrust
 		}

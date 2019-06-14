@@ -14,6 +14,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/analytics"
@@ -178,7 +179,7 @@ func (deps *endpointDeps) AmpAuction(w http.ResponseWriter, r *http.Request, _ h
 				// but this is a very unlikely corner case. Doing this so we can catch "hb_cache_id"
 				// and "hb_cache_id_{deal}", which allows for deal support in AMP.
 				bidExt := &openrtb_ext.ExtBid{}
-				err := json.Unmarshal(bid.Ext, bidExt)
+				err := jsoniter.Unmarshal(bid.Ext, bidExt)
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "Critical error while unpacking AMP targets: %v", err)
@@ -195,7 +196,7 @@ func (deps *endpointDeps) AmpAuction(w http.ResponseWriter, r *http.Request, _ h
 	}
 	// Extract any errors
 	var extResponse openrtb_ext.ExtBidResponse
-	eRErr := json.Unmarshal(response.Ext, &extResponse)
+	eRErr := jsoniter.Unmarshal(response.Ext, &extResponse)
 	if eRErr != nil {
 		ao.Errors = append(ao.Errors, fmt.Errorf("AMP response: failed to unpack OpenRTB response.ext, debug info cannot be forwarded: %v", eRErr))
 	}
@@ -291,7 +292,7 @@ func (deps *endpointDeps) loadRequestJSONForAmp(httpRequest *http.Request) (req 
 
 	// The fetched config becomes the entire OpenRTB request
 	requestJSON := storedRequests[ampID]
-	if err := json.Unmarshal(requestJSON, req); err != nil {
+	if err := jsoniter.Unmarshal(requestJSON, req); err != nil {
 		errs = []error{err}
 		return
 	}
@@ -454,7 +455,7 @@ func defaultRequestExt(req *openrtb.BidRequest) (errs []error) {
 	errs = nil
 	extRequest := &openrtb_ext.ExtRequest{}
 	if req.Ext != nil && len(req.Ext) > 0 {
-		if err := json.Unmarshal(req.Ext, extRequest); err != nil {
+		if err := jsoniter.Unmarshal(req.Ext, extRequest); err != nil {
 			errs = []error{err}
 			return
 		}
@@ -481,7 +482,7 @@ func defaultRequestExt(req *openrtb.BidRequest) (errs []error) {
 		extRequest.Prebid.Cache.Bids = &openrtb_ext.ExtRequestPrebidCacheBids{}
 	}
 	if setDefaults {
-		newExt, err := json.Marshal(extRequest)
+		newExt, err := jsoniter.Marshal(extRequest)
 		if err == nil {
 			req.Ext = newExt
 		} else {

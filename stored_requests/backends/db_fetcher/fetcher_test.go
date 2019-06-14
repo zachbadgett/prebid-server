@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"testing"
 	"time"
-
-	"github.com/DATA-DOG/go-sqlmock"
 )
 
 func TestEmptyQuery(t *testing.T) {

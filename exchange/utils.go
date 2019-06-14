@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/buger/jsonparser"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/gdpr"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -95,7 +96,7 @@ func extractBuyerUIDs(user *openrtb.User) (map[string]string, error) {
 	}
 
 	var userExt openrtb_ext.ExtUser
-	if err := json.Unmarshal(user.Ext, &userExt); err != nil {
+	if err := jsoniter.Unmarshal(user.Ext, &userExt); err != nil {
 		return nil, err
 	}
 	if userExt.Prebid == nil {
@@ -107,7 +108,7 @@ func extractBuyerUIDs(user *openrtb.User) (map[string]string, error) {
 	buyerUIDs := userExt.Prebid.BuyerUIDs
 	userExt.Prebid = nil
 	if userExt.Consent != "" || userExt.DigiTrust != nil {
-		if newUserExtBytes, err := json.Marshal(userExt); err != nil {
+		if newUserExtBytes, err := jsoniter.Marshal(userExt); err != nil {
 			return nil, err
 		} else {
 			user.Ext = newUserExtBytes
@@ -144,7 +145,7 @@ func splitImps(imps []openrtb.Imp) (map[string][]openrtb.Imp, []error) {
 		if ok {
 			var prebidExt openrtb_ext.ExtImpPrebid
 
-			if err := json.Unmarshal(rawPrebidExt, &prebidExt); err == nil && prebidExt.Bidder != nil {
+			if err := jsoniter.Unmarshal(rawPrebidExt, &prebidExt); err == nil && prebidExt.Bidder != nil {
 				if errs := sanitizedImpCopy(&imp, prebidExt.Bidder, rawPrebidExt, &splitImps); errs != nil {
 					errList = append(errList, errs...)
 				}
@@ -174,11 +175,11 @@ func sanitizedImpCopy(imp *openrtb.Imp,
 
 	// We don't want to include other demand partners' Bidder params
 	// in the sanitized imp
-	if err := json.Unmarshal(rawPrebidExt, &prebidExt); err == nil {
+	if err := jsoniter.Unmarshal(rawPrebidExt, &prebidExt); err == nil {
 		delete(prebidExt, "bidder")
 
 		var err error
-		if rawPrebidExt, err = json.Marshal(prebidExt); err != nil {
+		if rawPrebidExt, err = jsoniter.Marshal(prebidExt); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -197,7 +198,7 @@ func sanitizedImpCopy(imp *openrtb.Imp,
 			newExt["prebid"] = rawPrebidExt
 		}
 
-		rawExt, err := json.Marshal(newExt)
+		rawExt, err := jsoniter.Marshal(newExt)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -264,7 +265,7 @@ func parseImpExts(imps []openrtb.Imp) ([]map[string]json.RawMessage, error) {
 	// Loop over every impression in the request
 	for i := 0; i < len(imps); i++ {
 		// Unpack each set of extensions found in the Imp array
-		err := json.Unmarshal(imps[i].Ext, &exts[i])
+		err := jsoniter.Unmarshal(imps[i].Ext, &exts[i])
 		if err != nil {
 			return nil, fmt.Errorf("Error unpacking extensions for Imp[%d]: %s", i, err.Error())
 		}
@@ -276,7 +277,7 @@ func parseImpExts(imps []openrtb.Imp) ([]map[string]json.RawMessage, error) {
 func parseAliases(orig *openrtb.BidRequest) (map[string]string, []error) {
 	var aliases map[string]string
 	if value, dataType, _, err := jsonparser.Get(orig.Ext, "prebid", "aliases"); dataType == jsonparser.Object && err == nil {
-		if err := json.Unmarshal(value, &aliases); err != nil {
+		if err := jsoniter.Unmarshal(value, &aliases); err != nil {
 			return nil, []error{err}
 		}
 	} else if dataType != jsonparser.NotExist && err != jsonparser.KeyPathNotFoundError {

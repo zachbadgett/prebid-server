@@ -5,6 +5,7 @@ import (
 
 	"encoding/json"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/pbs"
 	"github.com/prebid/prebid-server/usersync"
@@ -429,10 +430,10 @@ func TestMakeVideo(t *testing.T) {
 func TestGDPR(t *testing.T) {
 
 	rawUserExt := json.RawMessage(`{"consent": "12345"}`)
-	userExt, _ := json.Marshal(rawUserExt)
+	userExt, _ := jsoniter.Marshal(rawUserExt)
 
 	rawRegsExt := json.RawMessage(`{"gdpr": 1}`)
-	regsExt, _ := json.Marshal(rawRegsExt)
+	regsExt, _ := jsoniter.Marshal(rawRegsExt)
 
 	pbReq := pbs.PBSRequest{
 		User: &openrtb.User{
@@ -473,10 +474,10 @@ func TestGDPR(t *testing.T) {
 
 func TestGDPRMobile(t *testing.T) {
 	rawUserExt := json.RawMessage(`{"consent": "12345"}`)
-	userExt, _ := json.Marshal(rawUserExt)
+	userExt, _ := jsoniter.Marshal(rawUserExt)
 
 	rawRegsExt := json.RawMessage(`{"gdpr": 1}`)
-	regsExt, _ := json.Marshal(rawRegsExt)
+	regsExt, _ := jsoniter.Marshal(rawRegsExt)
 
 	pbReq := pbs.PBSRequest{
 		AccountID:     "test_account_id",

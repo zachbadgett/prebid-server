@@ -1,10 +1,10 @@
 package currencies_test
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/prebid/prebid-server/currencies"
@@ -113,7 +113,7 @@ func TestUnMarshallRates(t *testing.T) {
 	for _, tc := range testCases {
 		// Execute:
 		updatedRates := currencies.Rates{}
-		err := json.Unmarshal([]byte(tc.ratesJSON), &updatedRates)
+		err := jsoniter.Unmarshal([]byte(tc.ratesJSON), &updatedRates)
 
 		// Verify:
 		assert.Equal(t, err != nil, tc.expectsError)

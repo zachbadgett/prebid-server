@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/pbs"
@@ -51,7 +52,7 @@ func dummyIXServer(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 
 	var breq openrtb.BidRequest
-	err = json.Unmarshal(body, &breq)
+	err = jsoniter.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,7 +70,7 @@ func dummyIXServer(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	js, err := json.Marshal(resp)
+	js, err := jsoniter.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -169,7 +170,7 @@ func TestIxTimeoutMultipleSlots(t *testing.T) {
 			body, err := ioutil.ReadAll(r.Body)
 
 			var breq openrtb.BidRequest
-			err = json.Unmarshal(body, &breq)
+			err = jsoniter.Unmarshal(body, &breq)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -187,7 +188,7 @@ func TestIxTimeoutMultipleSlots(t *testing.T) {
 				},
 			}
 
-			js, err := json.Marshal(resp)
+			js, err := jsoniter.Marshal(resp)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -403,7 +404,7 @@ func TestIxMismatchUnitCode(t *testing.T) {
 			body, err := ioutil.ReadAll(r.Body)
 
 			var breq openrtb.BidRequest
-			err = json.Unmarshal(body, &breq)
+			err = jsoniter.Unmarshal(body, &breq)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -428,7 +429,7 @@ func TestIxMismatchUnitCode(t *testing.T) {
 				},
 			}
 
-			js, err := json.Marshal(resp)
+			js, err := jsoniter.Marshal(resp)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

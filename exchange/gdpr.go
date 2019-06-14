@@ -1,9 +1,9 @@
 package exchange
 
 import (
-	"encoding/json"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 )
 
@@ -12,7 +12,7 @@ func extractGDPR(bidRequest *openrtb.BidRequest, usersyncIfAmbiguous bool) (gdpr
 	var re regsExt
 	var err error
 	if bidRequest.Regs != nil {
-		err = json.Unmarshal(bidRequest.Regs.Ext, &re)
+		err = jsoniter.Unmarshal(bidRequest.Regs.Ext, &re)
 	}
 	if re.GDPR == nil || err != nil {
 		if usersyncIfAmbiguous {
@@ -31,7 +31,7 @@ func extractConsent(bidRequest *openrtb.BidRequest) (consent string) {
 	var ue userExt
 	var err error
 	if bidRequest.User != nil {
-		err = json.Unmarshal(bidRequest.User.Ext, &ue)
+		err = jsoniter.Unmarshal(bidRequest.User.Ext, &ue)
 	}
 	if err != nil {
 		return

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/stored_requests"
 	"github.com/prebid/prebid-server/stored_requests/backends/empty_fetcher"
 
@@ -67,7 +68,7 @@ func TestGoodAmpRequests(t *testing.T) {
 		}
 
 		var response AmpResponse
-		if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		if err := jsoniter.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 			t.Fatalf("Error unmarshalling response: %s", err.Error())
 		}
 
@@ -224,7 +225,7 @@ func TestAmpDebug(t *testing.T) {
 		}
 
 		var response AmpResponse
-		if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		if err := jsoniter.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 			t.Fatalf("Error unmarshalling response: %s", err.Error())
 		}
 
@@ -249,7 +250,7 @@ func TestAmpTargetingDefaults(t *testing.T) {
 	}
 
 	var extRequest openrtb_ext.ExtRequest
-	if err := json.Unmarshal(req.Ext, &extRequest); err != nil {
+	if err := jsoniter.Unmarshal(req.Ext, &extRequest); err != nil {
 		t.Fatalf("Unexpected error unmarshalling defaulted request.ext for AMP: %v", err)
 	}
 	if extRequest.Prebid.Targeting == nil {
@@ -301,7 +302,7 @@ func TestQueryParamOverrides(t *testing.T) {
 	}
 
 	var response AmpResponse
-	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+	if err := jsoniter.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 		t.Fatalf("Error unmarshalling response: %s", err.Error())
 	}
 
@@ -423,7 +424,7 @@ func (s formatOverrideSpec) execute(t *testing.T) {
 		t.Errorf("Request was: %s", string(requests["1"]))
 	}
 	var response AmpResponse
-	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+	if err := jsoniter.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 		t.Fatalf("Error unmarshalling response: %s", err.Error())
 	}
 
@@ -467,7 +468,7 @@ func (m *mockAmpExchange) HoldAuction(ctx context.Context, bidRequest *openrtb.B
 	}
 
 	if bidRequest.Test == 1 {
-		resolvedRequest, err := json.Marshal(bidRequest)
+		resolvedRequest, err := jsoniter.Marshal(bidRequest)
 		if err != nil {
 			resolvedRequest = json.RawMessage("{}")
 		}

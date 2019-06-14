@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/coocood/freecache"
-	"github.com/erikstmartin/go-testdb"
 )
 
 type StubCache struct {

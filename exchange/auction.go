@@ -2,13 +2,13 @@ package exchange
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	uuid "github.com/gofrs/uuid"
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/config"
 	"github.com/prebid/prebid-server/openrtb_ext"
@@ -103,7 +103,7 @@ func (a *Auction) doCache(ctx context.Context, cache prebid_cache_client.Client,
 				}
 			}
 			if bids {
-				if jsonBytes, err := json.Marshal(topBidPerBidder.Bid); err == nil {
+				if jsonBytes, err := jsoniter.Marshal(topBidPerBidder.Bid); err == nil {
 					if useCustomCacheKey {
 						// not allowed if Bids is true; log error and cache normally
 						errs = append(errs, errors.New("cannot use custom cache key for non-vast Bids"))
@@ -120,7 +120,7 @@ func (a *Auction) doCache(ctx context.Context, cache prebid_cache_client.Client,
 			}
 			if vast && topBidPerBidder.BidType == openrtb_ext.BidTypeVideo {
 				vast := makeVAST(topBidPerBidder.Bid)
-				if jsonBytes, err := json.Marshal(vast); err == nil {
+				if jsonBytes, err := jsoniter.Marshal(vast); err == nil {
 					if useCustomCacheKey {
 						toCache = append(toCache, prebid_cache_client.Cacheable{
 							Type:       prebid_cache_client.TypeXML,

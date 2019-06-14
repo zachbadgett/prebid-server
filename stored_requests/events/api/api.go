@@ -1,10 +1,10 @@
 package api
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/julienschmidt/httprouter"
 	"github.com/prebid/prebid-server/stored_requests/events"
 )
@@ -43,7 +43,7 @@ func (api *eventsAPI) HandleEvent(w http.ResponseWriter, r *http.Request, _ http
 		}
 
 		var save events.Save
-		if err := json.Unmarshal(body, &save); err != nil {
+		if err := jsoniter.Unmarshal(body, &save); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid update.\n"))
 			return
@@ -59,7 +59,7 @@ func (api *eventsAPI) HandleEvent(w http.ResponseWriter, r *http.Request, _ http
 		}
 
 		var invalidation events.Invalidation
-		if err := json.Unmarshal(body, &invalidation); err != nil {
+		if err := jsoniter.Unmarshal(body, &invalidation); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid invalidation.\n"))
 			return

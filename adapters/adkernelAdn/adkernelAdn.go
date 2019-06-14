@@ -1,12 +1,12 @@
 package adkernelAdn
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"text/template"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -133,13 +133,13 @@ func compatBannerImpression(imp *openrtb.Imp) error {
 
 func getImpressionExt(imp *openrtb.Imp) (*openrtb_ext.ExtImpAdkernelAdn, error) {
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return nil, &errortypes.BadInput{
 			Message: err.Error(),
 		}
 	}
 	var adkernelAdnExt openrtb_ext.ExtImpAdkernelAdn
-	if err := json.Unmarshal(bidderExt.Bidder, &adkernelAdnExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &adkernelAdnExt); err != nil {
 		return nil, &errortypes.BadInput{
 			Message: err.Error(),
 		}
@@ -149,7 +149,7 @@ func getImpressionExt(imp *openrtb.Imp) (*openrtb_ext.ExtImpAdkernelAdn, error) 
 
 func (adapter *adkernelAdnAdapter) buildAdapterRequest(prebidBidRequest *openrtb.BidRequest, params *openrtb_ext.ExtImpAdkernelAdn, imps []openrtb.Imp) (*adapters.RequestData, error) {
 	newBidRequest := createBidRequest(prebidBidRequest, params, imps)
-	reqJSON, err := json.Marshal(newBidRequest)
+	reqJSON, err := jsoniter.Marshal(newBidRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (adapter *adkernelAdnAdapter) MakeBids(internalRequest *openrtb.BidRequest,
 		}
 	}
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{
 			newBadServerResponseError(fmt.Sprintf("Bad server response: %d", err)),
 		}

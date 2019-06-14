@@ -1,12 +1,12 @@
 package gamoshi
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -62,7 +62,7 @@ func (a *GamoshiAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 		return nil, errs
 	}
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -70,7 +70,7 @@ func (a *GamoshiAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 	errors := make([]error, 0, 1)
 
 	var bidderExt adapters.ExtImpBidder
-	err = json.Unmarshal(request.Imp[0].Ext, &bidderExt)
+	err = jsoniter.Unmarshal(request.Imp[0].Ext, &bidderExt)
 
 	if err != nil {
 		err = &errortypes.BadInput{
@@ -80,7 +80,7 @@ func (a *GamoshiAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.
 		return nil, errors
 	}
 	var gamoshiExt openrtb_ext.ExtImpGamoshi
-	err = json.Unmarshal(bidderExt.Bidder, &gamoshiExt)
+	err = jsoniter.Unmarshal(bidderExt.Bidder, &gamoshiExt)
 	if err != nil {
 		err = &errortypes.BadInput{
 			Message: "ext.bidder.supplyPartnerId not provided",
@@ -143,7 +143,7 @@ func (a *GamoshiAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalR
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("bad server response: %v. ", err),
 		}}

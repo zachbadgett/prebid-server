@@ -1,11 +1,11 @@
 package currencies
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/text/currency"
 )
 
@@ -31,7 +31,7 @@ func (r *Rates) UnmarshalJSON(b []byte) error {
 		DataAsOf    string                        `json:"dataAsOf"`
 		Conversions map[string]map[string]float64 `json:"conversions"`
 	}{}
-	if err := json.Unmarshal(b, &c); err != nil {
+	if err := jsoniter.Unmarshal(b, &c); err != nil {
 		return err
 	}
 

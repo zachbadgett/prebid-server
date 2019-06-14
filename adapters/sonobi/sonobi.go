@@ -1,13 +1,14 @@
 package sonobi
 
 import (
-	"encoding/json"
 	"fmt"
+	"net/http"
+
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
-	"net/http"
 )
 
 // SonobiAdapter - Sonobi SonobiAdapter definition
@@ -61,12 +62,12 @@ func (a *SonobiAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.R
 		reqCopy.Imp = append(make([]openrtb.Imp, 0, 1), imp)
 
 		var bidderExt adapters.ExtImpBidder
-		if err = json.Unmarshal(reqCopy.Imp[0].Ext, &bidderExt); err != nil {
+		if err = jsoniter.Unmarshal(reqCopy.Imp[0].Ext, &bidderExt); err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		if err = json.Unmarshal(bidderExt.Bidder, &sonobiExt); err != nil {
+		if err = jsoniter.Unmarshal(bidderExt.Bidder, &sonobiExt); err != nil {
 			errs = append(errs, err)
 			continue
 		}
@@ -89,7 +90,7 @@ func (a *SonobiAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Requ
 
 	var errs []error
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 
 	if err != nil {
 		errs = append(errs, err)
@@ -129,7 +130,7 @@ func (a *SonobiAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalRe
 
 	var bidResp openrtb.BidResponse
 
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

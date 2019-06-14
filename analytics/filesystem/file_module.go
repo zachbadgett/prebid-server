@@ -2,10 +2,10 @@ package filesystem
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"github.com/chasex/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/analytics"
 )
 
@@ -83,7 +83,7 @@ type fileAuctionObject analytics.AuctionObject
 
 func jsonifyAuctionObject(ao *analytics.AuctionObject) string {
 	type alias analytics.AuctionObject
-	b, err := json.Marshal(&struct {
+	b, err := jsoniter.Marshal(&struct {
 		Type RequestType `json:"type"`
 		*alias
 	}{
@@ -101,7 +101,7 @@ func jsonifyAuctionObject(ao *analytics.AuctionObject) string {
 func jsonifyCookieSync(cso *analytics.CookieSyncObject) string {
 	type alias analytics.CookieSyncObject
 
-	b, err := json.Marshal(&struct {
+	b, err := jsoniter.Marshal(&struct {
 		Type RequestType `json:"type"`
 		*alias
 	}{
@@ -118,7 +118,7 @@ func jsonifyCookieSync(cso *analytics.CookieSyncObject) string {
 
 func jsonifySetUIDObject(so *analytics.SetUIDObject) string {
 	type alias analytics.SetUIDObject
-	b, err := json.Marshal(&struct {
+	b, err := jsoniter.Marshal(&struct {
 		Type RequestType `json:"type"`
 		*alias
 	}{
@@ -135,7 +135,7 @@ func jsonifySetUIDObject(so *analytics.SetUIDObject) string {
 
 func jsonifyAmpObject(ao *analytics.AmpObject) string {
 	type alias analytics.AmpObject
-	b, err := json.Marshal(&struct {
+	b, err := jsoniter.Marshal(&struct {
 		Type RequestType `json:"type"`
 		*alias
 	}{

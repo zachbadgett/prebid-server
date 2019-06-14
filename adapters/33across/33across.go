@@ -1,10 +1,10 @@
 package ttx
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -50,7 +50,7 @@ func (a *TtxAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Request
 	}
 
 	// Last Step
-	reqJSON, err := json.Marshal(reqCopy)
+	reqJSON, err := jsoniter.Marshal(reqCopy)
 	if err != nil {
 		errs = append(errs, err)
 		return nil, errs
@@ -71,14 +71,14 @@ func (a *TtxAdapter) makeRequest(request *openrtb.BidRequest) (*adapters.Request
 func preprocess(request *openrtb.BidRequest) error {
 	var imp = &request.Imp[0]
 	var bidderExt adapters.ExtImpBidder
-	if err := json.Unmarshal(imp.Ext, &bidderExt); err != nil {
+	if err := jsoniter.Unmarshal(imp.Ext, &bidderExt); err != nil {
 		return &errortypes.BadInput{
 			Message: err.Error(),
 		}
 	}
 
 	var ttxExt openrtb_ext.ExtImp33across
-	if err := json.Unmarshal(bidderExt.Bidder, &ttxExt); err != nil {
+	if err := jsoniter.Unmarshal(bidderExt.Bidder, &ttxExt); err != nil {
 		return &errortypes.BadInput{
 			Message: err.Error(),
 		}
@@ -92,7 +92,7 @@ func preprocess(request *openrtb.BidRequest) error {
 		impExt.Ttx.Zoneid = ttxExt.ZoneId
 	}
 
-	impExtJSON, err := json.Marshal(impExt)
+	impExtJSON, err := jsoniter.Marshal(impExt)
 	if err != nil {
 		return &errortypes.BadInput{
 			Message: err.Error(),
@@ -127,7 +127,7 @@ func (a *TtxAdapter) MakeBids(internalRequest *openrtb.BidRequest, externalReque
 
 	var bidResp openrtb.BidResponse
 
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

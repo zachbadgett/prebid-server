@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/prebid/prebid-server/stored_requests"
-	"github.com/prebid/prebid-server/stored_requests/backends/file_fetcher"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +13,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/prebid/prebid-server/stored_requests"
+	"github.com/prebid/prebid-server/stored_requests/backends/file_fetcher"
 
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/currencies"
@@ -289,7 +291,7 @@ func buildImpExt(t *testing.T, jsonFilename string) json.RawMessage {
 			}
 		}
 	}
-	toReturn, err := json.Marshal(bidderExts)
+	toReturn, err := jsoniter.Marshal(bidderExts)
 	if err != nil {
 		t.Fatalf("Failed to marshal JSON: %v", err)
 	}
@@ -396,7 +398,7 @@ func loadFile(filename string) (*exchangeSpec, error) {
 	}
 
 	var spec exchangeSpec
-	if err := json.Unmarshal(specData, &spec); err != nil {
+	if err := jsoniter.Unmarshal(specData, &spec); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal JSON from file: %v", err)
 	}
 
@@ -457,7 +459,7 @@ func extractResponseTimes(t *testing.T, context string, bid *openrtb.BidResponse
 		return nil
 	} else {
 		responseTimes := make(map[string]int)
-		if err := json.Unmarshal(data, &responseTimes); err != nil {
+		if err := jsoniter.Unmarshal(data, &responseTimes); err != nil {
 			t.Errorf("%s: Failed to unmarshal Ext.responsetimemillis into map[string]int: %v", context, err)
 			return nil
 		}
@@ -770,12 +772,12 @@ func (b *validatingBidder) RequestBid(ctx context.Context, request *openrtb.BidR
 
 func diffOrtbRequests(t *testing.T, description string, expected *openrtb.BidRequest, actual *openrtb.BidRequest) {
 	t.Helper()
-	actualJSON, err := json.Marshal(actual)
+	actualJSON, err := jsoniter.Marshal(actual)
 	if err != nil {
 		t.Fatalf("%s failed to marshal actual BidRequest into JSON. %v", description, err)
 	}
 
-	expectedJSON, err := json.Marshal(expected)
+	expectedJSON, err := jsoniter.Marshal(expected)
 	if err != nil {
 		t.Fatalf("%s failed to marshal expected BidRequest into JSON. %v", description, err)
 	}
@@ -793,12 +795,12 @@ func diffOrtbResponses(t *testing.T, description string, expected *openrtb.BidRe
 	// this implementation detail, I'm cutting a corner and ignoring it here.
 	actualSeats := mapifySeatBids(t, description, actual.SeatBid)
 	expectedSeats := mapifySeatBids(t, description, expected.SeatBid)
-	actualJSON, err := json.Marshal(actualSeats)
+	actualJSON, err := jsoniter.Marshal(actualSeats)
 	if err != nil {
 		t.Fatalf("%s failed to marshal actual BidResponse into JSON. %v", description, err)
 	}
 
-	expectedJSON, err := json.Marshal(expectedSeats)
+	expectedJSON, err := jsoniter.Marshal(expectedSeats)
 	if err != nil {
 		t.Fatalf("%s failed to marshal expected BidResponse into JSON. %v", description, err)
 	}
@@ -830,7 +832,7 @@ func diffJson(t *testing.T, description string, actual []byte, expected []byte) 
 
 	if diff.Modified() {
 		var left interface{}
-		if err := json.Unmarshal(actual, &left); err != nil {
+		if err := jsoniter.Unmarshal(actual, &left); err != nil {
 			t.Fatalf("%s json did not match, but unmarhsalling failed. %v", description, err)
 		}
 		printer := formatter.NewAsciiFormatter(left, formatter.AsciiFormatterConfig{

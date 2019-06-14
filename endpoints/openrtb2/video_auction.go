@@ -2,7 +2,6 @@ package openrtb2
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/buger/jsonparser"
 	jsonpatch "github.com/evanphx/json-patch"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/errortypes"
 
 	"github.com/golang/glog"
@@ -137,7 +137,7 @@ func (deps *endpointDeps) VideoAuctionEndpoint(w http.ResponseWriter, r *http.Re
 
 	var bidReq = &openrtb.BidRequest{}
 	if deps.defaultRequest {
-		if err := json.Unmarshal(deps.defReqJSON, bidReq); err != nil {
+		if err := jsoniter.Unmarshal(deps.defReqJSON, bidReq); err != nil {
 			err = fmt.Errorf("Invalid JSON in Default Request Settings: %s", err)
 			errL = []error{err}
 			return
@@ -222,8 +222,8 @@ func (deps *endpointDeps) VideoAuctionEndpoint(w http.ResponseWriter, r *http.Re
 		bidResp.Ext = response.Ext
 	}
 
-	resp, err := json.Marshal(bidResp)
-	//resp, err := json.Marshal(response)
+	resp, err := jsoniter.Marshal(bidResp)
+	//resp, err := jsoniter.Marshal(response)
 	if err != nil {
 		errL := []error{err}
 		handleError(labels, w, errL, ao)
@@ -336,7 +336,7 @@ func (deps *endpointDeps) loadStoredImp(storedImpId string) (openrtb.Imp, []erro
 		return impr, err
 	}
 
-	if err := json.Unmarshal(imp[storedImpId], &impr); err != nil {
+	if err := jsoniter.Unmarshal(imp[storedImpId], &impr); err != nil {
 		return impr, []error{err}
 	}
 	return impr, nil
@@ -363,7 +363,7 @@ func buildVideoResponse(bidresponse *openrtb.BidResponse, podErrors []PodError) 
 		for _, bid := range seatBid.Bid {
 
 			var tempRespBidExt openrtb_ext.ExtBid
-			if err := json.Unmarshal(bid.Ext, &tempRespBidExt); err != nil {
+			if err := jsoniter.Unmarshal(bid.Ext, &tempRespBidExt); err != nil {
 				return nil, err
 			}
 			if tempRespBidExt.Prebid.Targeting[string(openrtb_ext.HbVastCacheKey)] == "" {
@@ -522,7 +522,7 @@ func createBidExtension(videoRequest *openrtb_ext.BidRequestVideo) ([]byte, erro
 	}
 	extReq := openrtb_ext.ExtRequest{Prebid: prebid}
 
-	reqJSON, err := json.Marshal(extReq)
+	reqJSON, err := jsoniter.Marshal(extReq)
 	if err != nil {
 		return nil, err
 	}
@@ -532,7 +532,7 @@ func createBidExtension(videoRequest *openrtb_ext.BidRequestVideo) ([]byte, erro
 func (deps *endpointDeps) parseVideoRequest(request []byte) (req *openrtb_ext.BidRequestVideo, errs []error, podErrors []PodError) {
 	req = &openrtb_ext.BidRequestVideo{}
 
-	if err := json.Unmarshal(request, &req); err != nil {
+	if err := jsoniter.Unmarshal(request, &req); err != nil {
 		errs = []error{err}
 		return
 	}

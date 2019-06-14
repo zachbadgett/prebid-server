@@ -1,10 +1,10 @@
 package improvedigital
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
@@ -18,7 +18,7 @@ type ImprovedigitalAdapter struct {
 func (a *ImprovedigitalAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapters.RequestData, []error) {
 	var errors = make([]error, 0)
 
-	reqJSON, err := json.Marshal(request)
+	reqJSON, err := jsoniter.Marshal(request)
 	if err != nil {
 		errors = append(errors, err)
 		return nil, errors
@@ -54,7 +54,7 @@ func (a *ImprovedigitalAdapter) MakeBids(internalRequest *openrtb.BidRequest, ex
 	}
 
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{err}
 	}
 

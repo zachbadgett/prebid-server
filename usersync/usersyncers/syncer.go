@@ -1,9 +1,10 @@
 package usersyncers
 
 import (
-	"github.com/prebid/prebid-server/adapters/gamoshi"
 	"strings"
 	"text/template"
+
+	"github.com/prebid/prebid-server/adapters/gamoshi"
 
 	"github.com/golang/glog"
 	ttx "github.com/prebid/prebid-server/adapters/33across"

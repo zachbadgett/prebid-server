@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters/adapterstest"
 	"github.com/prebid/prebid-server/cache/dummycache"
 	"github.com/prebid/prebid-server/pbs"
@@ -72,7 +73,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var breq openrtb.BidRequest
-	err = json.Unmarshal(body, &breq)
+	err = jsoniter.Unmarshal(body, &breq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -84,12 +85,12 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 	}
 	imp := breq.Imp[0]
 	var rix rubiconImpExt
-	err = json.Unmarshal(imp.Ext, &rix)
+	err = jsoniter.Unmarshal(imp.Ext, &rix)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	impTargetingString, _ := json.Marshal(&rix.RP.Target)
+	impTargetingString, _ := jsoniter.Marshal(&rix.RP.Target)
 	if string(impTargetingString) != rubidata.inventoryTargeting {
 		http.Error(w, fmt.Sprintf("Inventory FPD targeting '%s' doesn't match '%s'", string(impTargetingString), rubidata.inventoryTargeting), http.StatusInternalServerError)
 		return
@@ -130,7 +131,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 
 	if imp.Banner != nil {
 		var bix rubiconBannerExt
-		err = json.Unmarshal(imp.Banner.Ext, &bix)
+		err = jsoniter.Unmarshal(imp.Banner.Ext, &bix)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -151,7 +152,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 
 	if imp.Video != nil {
 		var vix rubiconVideoExt
-		err = json.Unmarshal(imp.Video.Ext, &vix)
+		err = jsoniter.Unmarshal(imp.Video.Ext, &vix)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -196,7 +197,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var rsx rubiconSiteExt
-	err = json.Unmarshal(breq.Site.Ext, &rsx)
+	err = jsoniter.Unmarshal(breq.Site.Ext, &rsx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -210,7 +211,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var rpx rubiconPubExt
-	err = json.Unmarshal(breq.Site.Publisher.Ext, &rpx)
+	err = jsoniter.Unmarshal(breq.Site.Publisher.Ext, &rpx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -237,12 +238,12 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var rux rubiconUserExt
-	err = json.Unmarshal(breq.User.Ext, &rux)
+	err = jsoniter.Unmarshal(breq.User.Ext, &rux)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	userTargetingString, _ := json.Marshal(&rux.RP.Target)
+	userTargetingString, _ := jsoniter.Marshal(&rux.RP.Target)
 	if string(userTargetingString) != rubidata.visitorTargeting {
 		http.Error(w, fmt.Sprintf("User FPD targeting '%s' doesn't match '%s'", string(userTargetingString), rubidata.visitorTargeting), http.StatusInternalServerError)
 		return
@@ -252,7 +253,7 @@ func DummyRubiconServer(w http.ResponseWriter, r *http.Request) {
 		<-time.After(rubidata.delay)
 	}
 
-	js, err := json.Marshal(resp)
+	js, err := jsoniter.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -642,7 +643,7 @@ func TestZeroSeatBidResponse(t *testing.T) {
 			Cur:     "USD",
 			SeatBid: []openrtb.SeatBid{},
 		}
-		js, _ := json.Marshal(resp)
+		js, _ := jsoniter.Marshal(resp)
 		w.Write(js)
 	}))
 	defer server.Close()
@@ -674,7 +675,7 @@ func TestEmptyBidResponse(t *testing.T) {
 				},
 			},
 		}
-		js, _ := json.Marshal(resp)
+		js, _ := jsoniter.Marshal(resp)
 		w.Write(js)
 	}))
 	defer server.Close()
@@ -713,7 +714,7 @@ func TestWrongBidIdResponse(t *testing.T) {
 			AdM:   "zma",
 			Ext:   json.RawMessage("{\"rp\":{\"targeting\":[{\"key\":\"key1\",\"values\":[\"value1\"]},{\"key\":\"key2\",\"values\":[\"value2\"]}]}}"),
 		}
-		js, _ := json.Marshal(resp)
+		js, _ := jsoniter.Marshal(resp)
 		w.Write(js)
 	}))
 	defer server.Close()
@@ -756,7 +757,7 @@ func TestZeroPriceBidResponse(t *testing.T) {
 			AdM:   "zma",
 			Ext:   json.RawMessage("{\"rp\":{\"targeting\":[{\"key\":\"key1\",\"values\":[\"value1\"]},{\"key\":\"key2\",\"values\":[\"value2\"]}]}}"),
 		}
-		js, _ := json.Marshal(resp)
+		js, _ := jsoniter.Marshal(resp)
 		w.Write(js)
 	}))
 	defer server.Close()
@@ -1062,7 +1063,7 @@ func TestOpenRTBRequest(t *testing.T) {
 		}
 
 		var rpRequest openrtb.BidRequest
-		if err := json.Unmarshal(httpReq.Body, &rpRequest); err != nil {
+		if err := jsoniter.Unmarshal(httpReq.Body, &rpRequest); err != nil {
 			t.Fatalf("Failed to unmarshal HTTP request: %v", rpRequest)
 		}
 
@@ -1078,7 +1079,7 @@ func TestOpenRTBRequest(t *testing.T) {
 
 		if rpRequest.Imp[0].ID == "test-imp-banner-id" {
 			var rpExt rubiconBannerExt
-			if err := json.Unmarshal(rpRequest.Imp[0].Ext, &rpExt); err != nil {
+			if err := jsoniter.Unmarshal(rpRequest.Imp[0].Ext, &rpExt); err != nil {
 				t.Fatal("Error unmarshalling request from the outgoing request.")
 			}
 
@@ -1096,7 +1097,7 @@ func TestOpenRTBRequest(t *testing.T) {
 			}
 		} else if rpRequest.Imp[0].ID == "test-imp-video-id" {
 			var rpExt rubiconVideoExt
-			if err := json.Unmarshal(rpRequest.Imp[0].Ext, &rpExt); err != nil {
+			if err := jsoniter.Unmarshal(rpRequest.Imp[0].Ext, &rpExt); err != nil {
 				t.Fatal("Error unmarshalling request from the outgoing request.")
 			}
 
@@ -1119,7 +1120,7 @@ func TestOpenRTBRequest(t *testing.T) {
 
 		if rpRequest.User.Ext != nil {
 			var userExt rubiconUserExt
-			if err := json.Unmarshal(rpRequest.User.Ext, &userExt); err != nil {
+			if err := jsoniter.Unmarshal(rpRequest.User.Ext, &userExt); err != nil {
 				t.Fatal("Error unmarshalling request.user.ext object.")
 			}
 			if userExt.DigiTrust.ID != "some-digitrust-id" || userExt.DigiTrust.KeyV != 1 || userExt.DigiTrust.Pref != 0 {
@@ -1181,7 +1182,7 @@ func TestOpenRTBStandardResponse(t *testing.T) {
 		}},
 	}
 
-	requestJson, _ := json.Marshal(request)
+	requestJson, _ := jsoniter.Marshal(request)
 	reqData := &adapters.RequestData{
 		Method:  "POST",
 		Uri:     "test-uri",
@@ -1218,7 +1219,7 @@ func TestOpenRTBCopyBidIdFromResponseIfZero(t *testing.T) {
 		Imp: []openrtb.Imp{{}},
 	}
 
-	requestJson, _ := json.Marshal(request)
+	requestJson, _ := jsoniter.Marshal(request)
 	reqData := &adapters.RequestData{Body: requestJson}
 
 	httpResp := &adapters.ResponseData{

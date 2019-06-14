@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/currencies"
 
 	"github.com/prebid/prebid-server/gdpr"
@@ -151,7 +152,7 @@ func buildParams(t *testing.T, mockBids map[openrtb_ext.BidderName][]*openrtb.Bi
 	for bidder := range mockBids {
 		params[string(bidder)] = json.RawMessage(`{"whatever":true}`)
 	}
-	ext, err := json.Marshal(params)
+	ext, err := jsoniter.Marshal(params)
 	if err != nil {
 		t.Fatalf("Failed to make imp exts: %v", err)
 	}
@@ -193,7 +194,7 @@ func buildBidMap(seatBids []openrtb.SeatBid, numBids int) map[string]*openrtb.Bi
 func parseTargets(t *testing.T, bid *openrtb.Bid) map[string]string {
 	t.Helper()
 	var parsed openrtb_ext.ExtBid
-	if err := json.Unmarshal(bid.Ext, &parsed); err != nil {
+	if err := jsoniter.Unmarshal(bid.Ext, &parsed); err != nil {
 		t.Fatalf("Unexpected error parsing targeting params: %v", err)
 	}
 	return parsed.Prebid.Targeting

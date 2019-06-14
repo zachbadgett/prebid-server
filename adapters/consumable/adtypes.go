@@ -1,8 +1,9 @@
 package consumable
 
 import (
-	"github.com/mxmCherry/openrtb"
 	"strconv"
+
+	"github.com/mxmCherry/openrtb"
 )
 
 /* Turn array of openrtb formats into consumable's code*/

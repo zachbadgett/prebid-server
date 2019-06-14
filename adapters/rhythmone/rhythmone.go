@@ -1,14 +1,15 @@
 package rhythmone
 
 import (
-	"encoding/json"
 	"fmt"
 
+	"net/http"
+
+	jsoniter "github.com/json-iterator/go"
 	"github.com/mxmCherry/openrtb"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/errortypes"
 	"github.com/prebid/prebid-server/openrtb_ext"
-	"net/http"
 )
 
 type RhythmoneAdapter struct {
@@ -21,7 +22,7 @@ func (a *RhythmoneAdapter) MakeRequests(request *openrtb.BidRequest) ([]*adapter
 	var uri string
 	request, uri, errs = a.preProcess(request, errs)
 	if request != nil {
-		reqJSON, err := json.Marshal(request)
+		reqJSON, err := jsoniter.Marshal(request)
 		if err != nil {
 			errs = append(errs, err)
 			return nil, errs
@@ -58,7 +59,7 @@ func (a *RhythmoneAdapter) MakeBids(internalRequest *openrtb.BidRequest, externa
 		}}
 	}
 	var bidResp openrtb.BidResponse
-	if err := json.Unmarshal(response.Body, &bidResp); err != nil {
+	if err := jsoniter.Unmarshal(response.Body, &bidResp); err != nil {
 		return nil, []error{&errortypes.BadServerResponse{
 			Message: fmt.Sprintf("bad server response: %d. ", err),
 		}}
@@ -105,7 +106,7 @@ func (a *RhythmoneAdapter) preProcess(req *openrtb.BidRequest, errors []error) (
 	for i := 0; i < numRequests; i++ {
 		imp := req.Imp[i]
 		var bidderExt adapters.ExtImpBidder
-		err := json.Unmarshal(imp.Ext, &bidderExt)
+		err := jsoniter.Unmarshal(imp.Ext, &bidderExt)
 		if err != nil {
 			err = &errortypes.BadInput{
 				Message: fmt.Sprintf("ext data not provided in imp id=%s. Abort all Request", imp.ID),
@@ -114,7 +115,7 @@ func (a *RhythmoneAdapter) preProcess(req *openrtb.BidRequest, errors []error) (
 			return nil, "", errors
 		}
 		var rhythmoneExt openrtb_ext.ExtImpRhythmone
-		err = json.Unmarshal(bidderExt.Bidder, &rhythmoneExt)
+		err = jsoniter.Unmarshal(bidderExt.Bidder, &rhythmoneExt)
 		if err != nil {
 			err = &errortypes.BadInput{
 				Message: fmt.Sprintf("placementId | zone | path not provided in imp id=%s. Abort all Request", imp.ID),
@@ -123,7 +124,7 @@ func (a *RhythmoneAdapter) preProcess(req *openrtb.BidRequest, errors []error) (
 			return nil, "", errors
 		}
 		rhythmoneExt.S2S = true
-		rhythmoneExtCopy, err := json.Marshal(&rhythmoneExt)
+		rhythmoneExtCopy, err := jsoniter.Marshal(&rhythmoneExt)
 		if err != nil {
 			errors = append(errors, err)
 			return nil, "", errors
@@ -131,7 +132,7 @@ func (a *RhythmoneAdapter) preProcess(req *openrtb.BidRequest, errors []error) (
 		bidderExtCopy := openrtb_ext.ExtBid{
 			Bidder: rhythmoneExtCopy,
 		}
-		impExtCopy, err := json.Marshal(&bidderExtCopy)
+		impExtCopy, err := jsoniter.Marshal(&bidderExtCopy)
 		if err != nil {
 			errors = append(errors, err)
 			return nil, "", errors

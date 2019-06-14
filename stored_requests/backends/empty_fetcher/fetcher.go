@@ -3,6 +3,7 @@ package empty_fetcher
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/prebid/prebid-server/stored_requests"
 )
 

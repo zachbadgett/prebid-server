@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/prebid/prebid-server/adapters"
 	"github.com/prebid/prebid-server/adapters/adform"
 	"github.com/prebid/prebid-server/adapters/appnexus"
@@ -88,7 +89,7 @@ func NewJsonDirectoryServer(schemaDirectory string, validator openrtb_ext.Bidder
 		data[aliasName] = bidderData
 	}
 
-	response, err := json.Marshal(data)
+	response, err := jsoniter.Marshal(data)
 	if err != nil {
 		glog.Fatalf("Failed to marshal bidder param JSON-schema: %v", err)
 	}
@@ -313,7 +314,7 @@ func readDefaultRequest(defReqConfig config.DefReqConfig) (map[string]string, []
 			return aliases, []byte{}
 		}
 
-		if err := json.Unmarshal(defReqJSON, defReq); err != nil {
+		if err := jsoniter.Unmarshal(defReqJSON, defReq); err != nil {
 			// we might not have aliases defined, but will atleast show that the JSON file is parsable.
 			glog.Fatalf("error parsing alias json in file %s: %v", defReqConfig.FileSystem.FileName, err)
 			return aliases, []byte{}

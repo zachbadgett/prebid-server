@@ -1,13 +1,13 @@
 package currencies
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"sync/atomic"
 	"time"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // RateConverter holds the currencies conversion rates dictionary
@@ -96,7 +96,7 @@ func (rc *RateConverter) fetch() (*Rates, error) {
 	}
 
 	updatedRates := &Rates{}
-	err = json.Unmarshal(bytesJSON, updatedRates)
+	err = jsoniter.Unmarshal(bytesJSON, updatedRates)
 	if err != nil {
 		return nil, err
 	}
